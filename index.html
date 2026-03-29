@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talent Sam — Répertoire de Talents</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .search-bar {
+            max-width: 500px;
+            margin: 1.5rem auto 0;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.75rem 1.2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            gap: 1rem;
+        }
+
+        .avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #667eea;
+            flex-shrink: 0;
+        }
+
+        .card-header-info h2 {
+            font-size: 1.2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-header-info .role {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .star {
+            font-size: 1.2rem;
+            color: #ddd;
+        }
+
+        .star.filled {
+            color: #f5a623;
+        }
+
+        .star.half {
+            background: linear-gradient(90deg, #f5a623 50%, #ddd 50%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .rating-value {
+            font-weight: 600;
+            color: #333;
+            margin-left: 0.3rem;
+            font-size: 0.95rem;
+        }
+
+        .skills {
+            padding: 0 1.5rem 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .skill-tag {
+            background: #eef0fb;
+            color: #667eea;
+            padding: 0.35rem 0.85rem;
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.5rem; }
+            .container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Talent Sam</h1>
+    <p>Répertoire de talents et compétences</p>
+    <div class="search-bar">
+        <input type="text" id="search" placeholder="Rechercher un talent ou une compétence...">
+    </div>
+</header>
+
+<div class="container" id="talents-container"></div>
+
+<script>
+    // ===== DONNÉES DES TALENTS =====
+    // Modifie ce tableau pour ajouter / retirer des talents
+    const talents = [
+        {
+            name: "Sophie Martin",
+            role: "Développeuse Full-Stack",
+            photo: "https://i.pravatar.cc/150?img=1",
+            rating: 4.8,
+            skills: ["JavaScript", "React", "Node.js", "PostgreSQL", "Docker"]
+        },
+        {
+            name: "Lucas Dupont",
+            role: "Designer UX/UI",
+            photo: "https://i.pravatar.cc/150?img=3",
+            rating: 4.5,
+            skills: ["Figma", "Adobe XD", "Prototypage", "Design System", "Recherche UX"]
+        },
+        {
+            name: "Amira Benali",
+            role: "Data Scientist",
+            photo: "https://i.pravatar.cc/150?img=5",
+            rating: 4.9,
+            skills: ["Python", "TensorFlow", "SQL", "Visualisation", "Machine Learning"]
+        },
+        {
+            name: "Thomas Leroy",
+            role: "Chef de Projet",
+            photo: "https://i.pravatar.cc/150?img=8",
+            rating: 4.2,
+            skills: ["Agile", "Scrum", "Jira", "Communication", "Gestion de risques"]
+        },
+        {
+            name: "Clara Rousseau",
+            role: "Développeuse Mobile",
+            photo: "https://i.pravatar.cc/150?img=9",
+            rating: 4.6,
+            skills: ["React Native", "Swift", "Kotlin", "Firebase", "CI/CD"]
+        },
+        {
+            name: "Karim Haddad",
+            role: "Ingénieur DevOps",
+            photo: "https://i.pravatar.cc/150?img=12",
+            rating: 4.7,
+            skills: ["AWS", "Kubernetes", "Terraform", "Linux", "Monitoring"]
+        }
+    ];
+
+    // ===== RENDU =====
+    function renderStars(rating) {
+        let html = '';
+        for (let i = 1; i <= 5; i++) {
+            if (rating >= i) {
+                html += '<span class="star filled">&#9733;</span>';
+            } else if (rating >= i - 0.5) {
+                html += '<span class="star half">&#9733;</span>';
+            } else {
+                html += '<span class="star">&#9733;</span>';
+            }
+        }
+        html += `<span class="rating-value">${rating}/5</span>`;
+        return html;
+    }
+
+    function renderTalents(list) {
+        const container = document.getElementById('talents-container');
+        if (list.length === 0) {
+            container.innerHTML = '<div class="no-results">Aucun talent trouvé.</div>';
+            return;
+        }
+        container.innerHTML = list.map(t => `
+            <div class="card">
+                <div class="card-header">
+                    <img class="avatar" src="${t.photo}" alt="${t.name}">
+                    <div class="card-header-info">
+                        <h2>${t.name}</h2>
+                        <span class="role">${t.role}</span>
+                    </div>
+                </div>
+                <div class="rating">${renderStars(t.rating)}</div>
+                <div class="skills">
+                    ${t.skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ===== RECHERCHE =====
+    document.getElementById('search').addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase();
+        const filtered = talents.filter(t =>
+            t.name.toLowerCase().includes(q) ||
+            t.role.toLowerCase().includes(q) ||
+            t.skills.some(s => s.toLowerCase().includes(q))
+        );
+        renderTalents(filtered);
+    });
+
+    // Rendu initial
+    renderTalents(talents);
+</script>
+
+</body>
+</html>
