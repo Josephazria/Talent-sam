@@ -151,9 +151,32 @@
             font-size: 1.1rem;
         }
 
+        .play-game {
+            position: fixed;
+            bottom: 22px;
+            right: 22px;
+            z-index: 50;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.4rem;
+            border-radius: 50px;
+            background: linear-gradient(90deg, #4ff0ff, #764ba2);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            box-shadow: 0 6px 24px rgba(79, 240, 255, 0.4);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .play-game:hover {
+            transform: translateY(-3px) scale(1.04);
+            box-shadow: 0 10px 32px rgba(79, 240, 255, 0.6);
+        }
+
         @media (max-width: 600px) {
             header h1 { font-size: 1.5rem; }
             .container { grid-template-columns: 1fr; }
+            .play-game { padding: 0.7rem 1.1rem; font-size: 0.9rem; }
         }
     </style>
 </head>
@@ -168,6 +191,8 @@
 </header>
 
 <div class="container" id="talents-container"></div>
+
+<a class="play-game" href="game.html">🎮 Jouer à Neon Drift</a>
 
 <script>
     // ===== DONNÉES DES TALENTS =====
