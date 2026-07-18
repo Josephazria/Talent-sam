@@ -195,3 +195,59 @@ $$;
 
 grant execute on function public.compatible(text, text) to authenticated;
 grant execute on function public.tick_match() to authenticated;
+
+-- ===========================================================================
+-- Carte (étape 6) — agrégats anonymes par lieu
+-- ===========================================================================
+-- Renvoie, pour chaque lieu où au moins 4 personnes compatibles sont actives :
+-- la position, un niveau d'intensité, un palier (jamais le chiffre exact) et
+-- une tranche d'âge de 10 ans. Aucune donnée individuelle n'est exposée.
+create or replace function public.carte_halos()
+returns table (
+  venue_id text, venue_name text, lat float8, lng float8,
+  niveau text, bucket text, tranche text
+)
+language plpgsql security definer set search_path = public as $$
+declare
+  moi uuid := auth.uid();
+  mon public.profiles;
+begin
+  if moi is not null then
+    select * into mon from public.profiles where id = moi;
+  end if;
+  return query
+  with actifs as (
+    select s.venue_id, s.venue_name, s.lat, s.lng,
+           p.genre, p.recherche,
+           extract(year from age(p.naissance))::int as age
+    from public.signals s
+    join public.profiles p on p.id = s.user_id
+    where s.expires_at > now() and s.lat is not null and s.lng is not null
+  ),
+  compat as (
+    select * from actifs a
+    where moi is null or (
+      public.compatible(mon.recherche, a.genre)
+      and public.compatible(a.recherche, mon.genre)
+    )
+  ),
+  grp as (
+    select c.venue_id,
+           max(c.venue_name) as venue_name,
+           avg(c.lat)::float8 as lat,
+           avg(c.lng)::float8 as lng,
+           count(*)::int as n,
+           avg(c.age)::numeric as avgage
+    from compat c group by c.venue_id
+  )
+  select g.venue_id, g.venue_name, g.lat, g.lng,
+    case when g.n >= 10 then 'tres_actif' else 'actif' end,
+    case when g.n >= 10 then '10+' when g.n >= 8 then '8+'
+         when g.n >= 6 then '6+' else '4+' end,
+    (greatest(18, (round(g.avgage/5)*5 - 5))::int)::text || '-' ||
+    (greatest(28, (round(g.avgage/5)*5 + 5))::int)::text || ' ans'
+  from grp g where g.n >= 4;
+end;
+$$;
+
+grant execute on function public.carte_halos() to anon, authenticated;

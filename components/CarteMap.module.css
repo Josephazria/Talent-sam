@@ -1,0 +1,95 @@
+.map {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: var(--bordeaux-deep);
+}
+
+/* Halo doré — lueur radiale qui respire */
+.halo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(198, 161, 91, 0.55) 0%,
+    rgba(198, 161, 91, 0.22) 35%,
+    rgba(198, 161, 91, 0) 70%
+  );
+  animation: respire 4s ease-in-out infinite;
+}
+.haloFort {
+  background: radial-gradient(
+    circle,
+    rgba(220, 192, 132, 0.8) 0%,
+    rgba(198, 161, 91, 0.4) 40%,
+    rgba(198, 161, 91, 0) 72%
+  );
+}
+@keyframes respire {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+/* Message « carte vide » */
+.vide {
+  position: fixed;
+  bottom: 12%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--gold-dim);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  z-index: 5;
+  padding: 0 2rem;
+}
+
+/* Fiche lieu */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 3, 6, 0.55);
+  z-index: 20;
+}
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 21;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem calc(env(safe-area-inset-bottom) + 2rem);
+  background: var(--bordeaux-raised);
+  border-top: 1px solid var(--gold-faint);
+  border-radius: 14px 14px 0 0;
+  text-align: center;
+}
+.nom {
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: var(--gold);
+}
+.agg {
+  margin: 0.75rem 0 1.75rem;
+  font-size: 1.05rem;
+  color: var(--gold-dim);
+}
+
+/* Attribution Leaflet, discrète */
+.map :global(.leaflet-control-attribution) {
+  background: rgba(20, 6, 10, 0.6) !important;
+  color: var(--gold-dim) !important;
+  font-size: 9px;
+}
+.map :global(.leaflet-control-attribution a) {
+  color: var(--gold-dim) !important;
+}
