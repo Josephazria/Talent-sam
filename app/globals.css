@@ -1,0 +1,260 @@
+/* ==========================================================================
+   nod — design system
+   Fond bordeaux sombre, typographie serif dorée, sobre et élégant.
+   Aucun emoji. Impression d'objet précieux.
+   ========================================================================== */
+
+:root {
+  /* Bordeaux */
+  --bordeaux-deep: #170509;   /* base la plus sombre (dégradé) */
+  --bordeaux: #250810;        /* fond principal */
+  --bordeaux-raised: #351421; /* surfaces surélevées (cartes) */
+  --bordeaux-line: #4a2130;   /* filets, séparateurs */
+
+  /* Or */
+  --gold: #c6a15b;            /* or principal (texte, accents) */
+  --gold-bright: #dcc084;     /* survol / emphase */
+  --gold-dim: rgba(198, 161, 91, 0.58);  /* texte secondaire */
+  --gold-faint: rgba(198, 161, 91, 0.20); /* filets discrets */
+
+  /* Ivoire (usage rare) */
+  --ivory: #efe6d6;
+
+  /* Overlay de modale : sombre uni ~85 % */
+  --overlay: rgba(12, 3, 6, 0.85);
+
+  --font-serif: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
+
+  /* Rythme */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+
+  --radius: 2px;
+  --tap: 44px; /* zone tactile minimale */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-serif);
+  background:
+    radial-gradient(120% 80% at 50% -10%, var(--bordeaux) 0%, var(--bordeaux-deep) 70%);
+  background-color: var(--bordeaux-deep);
+  color: var(--gold);
+  min-height: 100dvh;
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  /* Respecte les encoches iPhone */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Sélection */
+::selection {
+  background: var(--gold-faint);
+  color: var(--gold-bright);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   Mise en page — écran plein, contenu centré
+   -------------------------------------------------------------------------- */
+.screen {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-3);
+}
+
+.screen--center {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Coins discrets pour les icônes (carte / paramètres) */
+.corner {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + var(--space-3));
+  width: var(--tap);
+  height: var(--tap);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-dim);
+  transition: color 0.3s ease;
+  z-index: 10;
+}
+.corner:active,
+.corner:hover {
+  color: var(--gold-bright);
+}
+.corner--left {
+  left: calc(env(safe-area-inset-left) + var(--space-2));
+}
+.corner--right {
+  right: calc(env(safe-area-inset-right) + var(--space-2));
+}
+
+/* --------------------------------------------------------------------------
+   Typographie
+   -------------------------------------------------------------------------- */
+.wordmark {
+  font-weight: 500;
+  font-size: clamp(4.5rem, 22vw, 7rem);
+  line-height: 1;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+
+.tagline {
+  margin-top: var(--space-2);
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: var(--gold-dim);
+  letter-spacing: 0.08em;
+}
+
+.title {
+  font-size: clamp(2rem, 9vw, 2.6rem);
+  font-weight: 500;
+  color: var(--gold);
+  line-height: 1.15;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: var(--gold-dim);
+  font-weight: 400;
+}
+
+.eyebrow {
+  font-size: 0.82rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  font-weight: 500;
+}
+
+.body {
+  font-size: 1.12rem;
+  color: var(--gold);
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+.muted {
+  color: var(--gold-dim);
+}
+
+/* --------------------------------------------------------------------------
+   Boutons
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap);
+  padding: 0.85rem 2rem;
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  border-radius: var(--radius);
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+/* Principal : cadre or, fond translucide */
+.btn--primary {
+  color: var(--gold-bright);
+  border: 1px solid var(--gold);
+  background: rgba(198, 161, 91, 0.06);
+}
+.btn--primary:active,
+.btn--primary:hover {
+  background: rgba(198, 161, 91, 0.14);
+  border-color: var(--gold-bright);
+}
+
+/* Discret : simple lien souligné à peine */
+.btn--ghost {
+  color: var(--gold-dim);
+  font-size: 1rem;
+  padding: 0.6rem 1rem;
+  letter-spacing: 0.04em;
+}
+.btn--ghost:active,
+.btn--ghost:hover {
+  color: var(--gold-bright);
+}
+
+.btn--block {
+  width: 100%;
+}
+
+/* Lien texte discret */
+.link {
+  color: var(--gold-dim);
+  border-bottom: 1px solid var(--gold-faint);
+  padding-bottom: 1px;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+.link:active,
+.link:hover {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+}
+
+/* --------------------------------------------------------------------------
+   Filet séparateur
+   -------------------------------------------------------------------------- */
+.rule {
+  width: 40px;
+  height: 1px;
+  background: var(--gold-faint);
+  border: none;
+  margin: var(--space-3) auto;
+}
+
+/* Utilitaires d'espacement */
+.stack > * + * {
+  margin-top: var(--space-3);
+}
+.mt-1 { margin-top: var(--space-1); }
+.mt-2 { margin-top: var(--space-2); }
+.mt-3 { margin-top: var(--space-3); }
+.mt-4 { margin-top: var(--space-4); }
