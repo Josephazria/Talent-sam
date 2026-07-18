@@ -1,0 +1,50 @@
+.bloc {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.packs {
+  width: 100%;
+  margin-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pack {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: inherit;
+  color: var(--gold);
+  background: rgba(198, 161, 91, 0.06);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  transition: all 0.3s ease;
+}
+.pack:active,
+.pack:hover {
+  background: rgba(198, 161, 91, 0.14);
+  border-color: var(--gold-bright);
+}
+.packN {
+  font-size: 1.25rem;
+}
+.packP {
+  font-size: 1.25rem;
+  color: var(--gold-bright);
+  letter-spacing: 0.02em;
+}
+
+.err {
+  margin-top: 1.25rem;
+  font-size: 0.95rem;
+  color: var(--gold-dim);
+}

@@ -251,3 +251,109 @@ end;
 $$;
 
 grant execute on function public.carte_halos() to anon, authenticated;
+
+-- ===========================================================================
+-- Crédits et paywall (étape 7)
+-- ===========================================================================
+alter table public.profiles add column if not exists credits int not null default 0;
+alter table public.profiles add column if not exists signaux_utilises int not null default 0;
+
+-- Packs événement (sans UI) : un organisateur peut offrir des signaux
+-- illimités à tous les participants d'un venue/code donné.
+create table if not exists public.event_packs (
+  venue_id text primary key,
+  illimite boolean not null default true,
+  expires_at timestamptz
+);
+alter table public.event_packs enable row level security;
+drop policy if exists "packs_lecture" on public.event_packs;
+create policy "packs_lecture" on public.event_packs for select using (true);
+
+-- Active un signal en appliquant les règles de crédits (femmes/others :
+-- illimité ; hommes : 3 gratuits puis 1 crédit). Renvoie 'ok' ou 'paywall'.
+create or replace function public.activer_signal(
+  p_venue_id text, p_venue_name text, p_lat float8, p_lng float8
+) returns text
+language plpgsql security definer set search_path = public as $$
+declare
+  moi uuid := auth.uid();
+  prof public.profiles;
+  existant public.signals;
+  gratuit boolean;
+begin
+  if moi is null then return 'non_connecte'; end if;
+  select * into prof from public.profiles where id = moi;
+  if not found then return 'non_connecte'; end if;
+
+  -- Signal déjà actif : on le remplace sans reconsommer.
+  select * into existant from public.signals where user_id = moi and expires_at > now();
+  if found then
+    update public.signals
+      set venue_id = p_venue_id, venue_name = p_venue_name, lat = p_lat, lng = p_lng
+      where user_id = moi;
+    return 'ok';
+  end if;
+
+  gratuit := prof.genre in ('femme', 'autre');
+  if exists (
+    select 1 from public.event_packs
+    where venue_id = p_venue_id and (expires_at is null or expires_at > now())
+  ) then
+    gratuit := true;
+  end if;
+
+  if not gratuit then
+    if prof.signaux_utilises < 3 then
+      update public.profiles set signaux_utilises = signaux_utilises + 1 where id = moi;
+    elsif prof.credits > 0 then
+      update public.profiles set credits = credits - 1 where id = moi;
+    else
+      return 'paywall';
+    end if;
+  end if;
+
+  insert into public.signals (user_id, venue_id, venue_name, lat, lng, expires_at)
+    values (moi, p_venue_id, p_venue_name, p_lat, p_lng, now() + interval '30 minutes')
+  on conflict (user_id) do update
+    set venue_id = excluded.venue_id, venue_name = excluded.venue_name,
+        lat = excluded.lat, lng = excluded.lng,
+        expires_at = excluded.expires_at, created_at = now();
+  return 'ok';
+end;
+$$;
+
+-- Prolonge le signal actif de 30 min (1 crédit pour les hommes).
+create or replace function public.prolonger_signal()
+returns text language plpgsql security definer set search_path = public as $$
+declare moi uuid := auth.uid(); prof public.profiles; sig public.signals; gratuit boolean;
+begin
+  if moi is null then return 'non_connecte'; end if;
+  select * into sig from public.signals where user_id = moi and expires_at > now();
+  if not found then return 'pas_de_signal'; end if;
+  select * into prof from public.profiles where id = moi;
+  gratuit := prof.genre in ('femme', 'autre');
+  if exists (select 1 from public.event_packs where venue_id = sig.venue_id
+             and (expires_at is null or expires_at > now())) then
+    gratuit := true;
+  end if;
+  if not gratuit then
+    if prof.credits > 0 then
+      update public.profiles set credits = credits - 1 where id = moi;
+    else
+      return 'paywall';
+    end if;
+  end if;
+  update public.signals set expires_at = expires_at + interval '30 minutes' where user_id = moi;
+  return 'ok';
+end;
+$$;
+
+grant execute on function public.activer_signal(text, text, float8, float8) to authenticated;
+grant execute on function public.prolonger_signal() to authenticated;
+
+-- Ajout de crédits après paiement (appelé par le webhook via la clé service).
+create or replace function public.ajouter_credits(p_user uuid, p_montant int)
+returns void language sql security definer set search_path = public as $$
+  update public.profiles set credits = credits + p_montant where id = p_user;
+$$;
+grant execute on function public.ajouter_credits(uuid, int) to service_role;

@@ -8,7 +8,8 @@ import MatchActif from "@/components/MatchActif";
 import { fetchMyProfile } from "@/lib/profile";
 import {
   getMySignal,
-  createSignal,
+  activerSignal,
+  prolongerSignal,
   deleteMySignal,
   type Signal,
 } from "@/lib/signal";
@@ -111,8 +112,13 @@ export default function Activer() {
     const lieu = lieux[choix];
     if (!lieu || occupe) return;
     setOccupe(true);
-    const { error } = await createSignal(lieu.id, lieu.nom, lieu.lat, lieu.lng);
-    if (error) {
+    const statut = await activerSignal(lieu.id, lieu.nom, lieu.lat, lieu.lng);
+    if (statut === "paywall") {
+      setOccupe(false);
+      router.push("/paywall");
+      return;
+    }
+    if (statut !== "ok") {
       setOccupe(false);
       return;
     }
@@ -267,6 +273,8 @@ export default function Activer() {
             occupe={occupe}
             onAnnuler={annulerSignal}
             onMatch={onMatch}
+            onProlonge={(s) => setSignal(s)}
+            onPaywall={() => router.push("/paywall")}
             onExpire={() => {
               setSignal(null);
               setEtat("termine");
@@ -309,20 +317,41 @@ function SignalActif({
   occupe,
   onAnnuler,
   onMatch,
+  onProlonge,
+  onPaywall,
   onExpire,
 }: {
   signal: Signal;
   occupe: boolean;
   onAnnuler: () => void;
   onMatch: (m: Match) => void;
+  onProlonge: (s: Signal) => void;
+  onPaywall: () => void;
   onExpire: () => void;
 }) {
+  const [prolonge, setProlonge] = useState(false);
   const [reste, setReste] = useState(() =>
     Math.max(
       0,
       Math.floor((new Date(signal.expires_at).getTime() - Date.now()) / 1000)
     )
   );
+
+  async function prolonger() {
+    if (prolonge) return;
+    setProlonge(true);
+    const st = await prolongerSignal();
+    if (st === "paywall") {
+      setProlonge(false);
+      onPaywall();
+      return;
+    }
+    if (st === "ok") {
+      const s = await getMySignal();
+      if (s) onProlonge(s);
+    }
+    setProlonge(false);
+  }
   const expireRef = useRef(onExpire);
   expireRef.current = onExpire;
   const matchRef = useRef(onMatch);
@@ -375,7 +404,17 @@ function SignalActif({
       </div>
       <p className={styles.venue}>{signal.venue_name}</p>
       <p className="muted mt-2">en attente d'un match</p>
-      <button className="btn btn--ghost mt-4" onClick={onAnnuler} disabled={occupe}>
+      {reste < 300 && reste > 0 && (
+        <button
+          className="btn btn--primary mt-4"
+          onClick={prolonger}
+          disabled={prolonge}
+          style={{ opacity: prolonge ? 0.5 : 1 }}
+        >
+          {prolonge ? "…" : "prolonger de 30 min"}
+        </button>
+      )}
+      <button className="btn btn--ghost mt-3" onClick={onAnnuler} disabled={occupe}>
         annuler
       </button>
     </div>

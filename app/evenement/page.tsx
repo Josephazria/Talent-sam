@@ -6,7 +6,7 @@ import Link from "next/link";
 import QRCode from "qrcode";
 import { BackIcon } from "@/components/Icons";
 import { fetchMyProfile } from "@/lib/profile";
-import { createSignal } from "@/lib/signal";
+import { activerSignal } from "@/lib/signal";
 import styles from "./evenement.module.css";
 
 // Écran 5 — Codes événement (venue virtuel).
@@ -80,14 +80,18 @@ export default function Evenement() {
     if (occupe) return;
     setErreur(null);
     setOccupe(true);
-    const { error } = await createSignal(
+    const statut = await activerSignal(
       `event:${codeEvenement}`,
       `Événement · ${codeEvenement}`,
       null,
       null
     );
     setOccupe(false);
-    if (error) {
+    if (statut === "paywall") {
+      router.push("/paywall");
+      return;
+    }
+    if (statut !== "ok") {
       setErreur("Activation impossible. Réessayez.");
       return;
     }

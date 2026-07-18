@@ -37,5 +37,5 @@ npm run start
 - [x] Étape 3 — Détection de lieu (OpenStreetMap), signal 30 min, expiration
 - [x] Étape 4 — Matching + rôles (signe / phrase) ; notifications push à venir
 - [x] Étape 5 — Codes événement (venue virtuel, QR)
-- [ ] Étape 6 — Carte
-- [ ] Étape 7 — Crédits, Stripe, prolongation
+- [x] Étape 6 — Carte (halos dorés, agrégats anonymes serveur)
+- [x] Étape 7 — Crédits + paywall + prolongation + Stripe (à connecter)
