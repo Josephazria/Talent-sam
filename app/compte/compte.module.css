@@ -37,6 +37,33 @@
   gap: 1rem;
 }
 
+/* Champ e-mail */
+.input {
+  margin-top: 2.5rem;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0.85rem 1rem;
+  font-family: inherit;
+  font-size: 1.15rem;
+  color: var(--gold-bright);
+  background: rgba(198, 161, 91, 0.06);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  text-align: center;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.input::placeholder {
+  color: var(--gold-dim);
+}
+
+/* Message d'erreur discret */
+.erreur {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: var(--gold-dim);
+}
+
 /* Champ date */
 .date {
   margin-top: 2rem;
@@ -103,4 +130,7 @@
   border-color: var(--gold-bright);
   color: var(--gold-bright);
   background: rgba(198, 161, 91, 0.12);
+}
+.optionOff {
+  opacity: 0.5;
 }

@@ -2,22 +2,27 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getProfile } from "@/lib/profile";
+import { fetchMyProfile } from "@/lib/profile";
 import AParaitre from "@/components/AParaitre";
 
-// Le parcours d'activation (lieu, signal) est construit à l'étape 3.
-// Règle : un compte est exigé à la première activation. Sans profil,
-// on redirige vers l'inscription.
+// Règle : un compte (et un profil complet) est exigé à la première activation.
+// Sinon, on redirige vers l'inscription. Le parcours d'activation lui-même
+// (lieu, signal) est construit à l'étape 3.
 export default function Activer() {
   const router = useRouter();
   const [pret, setPret] = useState(false);
 
   useEffect(() => {
-    if (getProfile()) {
-      setPret(true);
-    } else {
-      router.replace("/compte");
-    }
+    let actif = true;
+    (async () => {
+      const profil = await fetchMyProfile();
+      if (!actif) return;
+      if (profil) setPret(true);
+      else router.replace("/compte");
+    })();
+    return () => {
+      actif = false;
+    };
   }, [router]);
 
   if (!pret) return null;

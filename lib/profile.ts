@@ -1,6 +1,6 @@
-// Stockage temporaire du profil côté navigateur (localStorage).
-// Sera remplacé par Supabase (base de données) une fois l'authentification
-// branchée. L'interface reste la même pour faciliter la bascule.
+// Profil utilisateur, stocké dans Supabase (table profiles).
+
+import { supabase } from "./supabase";
 
 export type Genre = "femme" | "homme" | "autre";
 export type Recherche = "femmes" | "hommes" | "les_deux";
@@ -9,23 +9,6 @@ export interface Profile {
   naissance: string; // date ISO "AAAA-MM-JJ"
   genre: Genre;
   recherche: Recherche;
-}
-
-const KEY = "nod_profile";
-
-export function getProfile(): Profile | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as Profile) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function saveProfile(p: Profile): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(p));
 }
 
 // Âge révolu à partir d'une date de naissance ISO.
@@ -38,4 +21,32 @@ export function ageFromISO(iso: string): number {
     age--;
   }
   return age;
+}
+
+// Récupère le profil de l'utilisateur connecté, ou null.
+export async function fetchMyProfile(): Promise<Profile | null> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("naissance, genre, recherche")
+    .eq("id", user.id)
+    .maybeSingle();
+  return (data as Profile | null) ?? null;
+}
+
+// Enregistre (crée ou met à jour) le profil de l'utilisateur connecté.
+export async function saveMyProfile(
+  p: Profile
+): Promise<{ error: string | null }> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "non_connecte" };
+  const { error } = await supabase
+    .from("profiles")
+    .upsert({ id: user.id, ...p });
+  return { error: error ? error.message : null };
 }
