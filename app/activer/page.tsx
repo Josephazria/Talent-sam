@@ -19,6 +19,7 @@ import {
   monUserId,
   type Match,
 } from "@/lib/match";
+import { activerNotifications, notifierMatch } from "@/lib/push";
 import styles from "./activer.module.css";
 
 type Lieu = { id: string; nom: string; type: string; lat: number; lng: number };
@@ -62,6 +63,7 @@ export default function Activer() {
       if (m) {
         setMatch(m);
         setEtat("match");
+        if (id && m.user_a === id) void notifierMatch(m.user_b);
         return;
       }
       // Signal déjà actif ?
@@ -81,6 +83,8 @@ export default function Activer() {
 
   // Lit la position UNE seule fois, puis cherche le lieu.
   const activer = useCallback(() => {
+    // Profite du geste utilisateur pour proposer les notifications.
+    void activerNotifications();
     if (!("geolocation" in navigator)) {
       setEtat("refus");
       return;
@@ -127,8 +131,7 @@ export default function Activer() {
     const s = await getMySignal();
     setOccupe(false);
     if (m) {
-      setMatch(m);
-      setEtat("match");
+      onMatch(m);
     } else if (s) {
       setSignal(s);
       setEtat("actif");
@@ -139,6 +142,7 @@ export default function Activer() {
     setMatch(m);
     setSignal(null);
     setEtat("match");
+    if (myId && m.user_a === myId) void notifierMatch(m.user_b);
   }
 
   async function annulerSignal() {

@@ -357,3 +357,16 @@ returns void language sql security definer set search_path = public as $$
   update public.profiles set credits = credits + p_montant where id = p_user;
 $$;
 grant execute on function public.ajouter_credits(uuid, int) to service_role;
+
+-- ===========================================================================
+-- Notifications push (étape 4 — suite)
+-- ===========================================================================
+create table if not exists public.push_subscriptions (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  subscription jsonb not null,
+  updated_at timestamptz not null default now()
+);
+alter table public.push_subscriptions enable row level security;
+drop policy if exists "push_self" on public.push_subscriptions;
+create policy "push_self" on public.push_subscriptions for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);

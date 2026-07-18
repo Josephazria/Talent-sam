@@ -7,6 +7,7 @@ import QRCode from "qrcode";
 import { BackIcon } from "@/components/Icons";
 import { fetchMyProfile } from "@/lib/profile";
 import { activerSignal } from "@/lib/signal";
+import { activerNotifications } from "@/lib/push";
 import styles from "./evenement.module.css";
 
 // Écran 5 — Codes événement (venue virtuel).
@@ -78,6 +79,7 @@ export default function Evenement() {
 
   async function activer(codeEvenement: string) {
     if (occupe) return;
+    void activerNotifications();
     setErreur(null);
     setOccupe(true);
     const statut = await activerSignal(

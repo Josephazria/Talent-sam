@@ -35,7 +35,7 @@ npm run start
 - [x] Étape 1 — Squelette, design system, accueil, « comment ça marche »
 - [x] Étape 2 — Compte (lien e-mail), vérification 18+, profil (Google à ajouter)
 - [x] Étape 3 — Détection de lieu (OpenStreetMap), signal 30 min, expiration
-- [x] Étape 4 — Matching + rôles (signe / phrase) ; notifications push à venir
+- [x] Étape 4 — Matching + rôles (signe / phrase) + notifications push
 - [x] Étape 5 — Codes événement (venue virtuel, QR)
 - [x] Étape 6 — Carte (halos dorés, agrégats anonymes serveur)
 - [x] Étape 7 — Crédits + paywall + prolongation + Stripe (à connecter)
