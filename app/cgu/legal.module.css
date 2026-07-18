@@ -1,0 +1,24 @@
+.page {
+  padding-top: calc(env(safe-area-inset-top) + 4.5rem);
+  padding-bottom: 3rem;
+  display: block;
+  max-width: 480px;
+}
+.h {
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: var(--gold);
+  margin-top: 1.75rem;
+}
+.p {
+  margin-top: 0.5rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--gold-dim);
+}
+.note {
+  margin-top: 2.5rem;
+  font-size: 0.85rem;
+  color: var(--gold-faint);
+  font-style: italic;
+}

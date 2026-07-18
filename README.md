@@ -39,3 +39,4 @@ npm run start
 - [x] Étape 5 — Codes événement (venue virtuel, QR)
 - [x] Étape 6 — Carte (halos dorés, agrégats anonymes serveur)
 - [x] Étape 7 — Crédits + paywall + prolongation + Stripe (à connecter)
+- [x] Étape 8 — Paramètres : profil, reconnaissance, sécurité, légal, RGPD

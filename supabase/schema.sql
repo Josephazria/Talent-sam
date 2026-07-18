@@ -370,3 +370,106 @@ alter table public.push_subscriptions enable row level security;
 drop policy if exists "push_self" on public.push_subscriptions;
 create policy "push_self" on public.push_subscriptions for all
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ===========================================================================
+-- Paramètres (étape 8) — reconnaissance personnalisée + blocage
+-- ===========================================================================
+alter table public.profiles add column if not exists signe text;
+alter table public.profiles add column if not exists phrase text;
+alter table public.profiles add column if not exists reponse text;
+
+create table if not exists public.blocks (
+  blocker uuid not null references auth.users (id) on delete cascade,
+  blocked uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (blocker, blocked)
+);
+alter table public.blocks enable row level security;
+drop policy if exists "blocks_self" on public.blocks;
+create policy "blocks_self" on public.blocks for all
+  using (auth.uid() = blocker) with check (auth.uid() = blocker);
+
+-- Matching v2 : exclut les personnes bloquées et utilise le signe/la phrase
+-- personnalisés de chacun (valeurs par défaut sinon).
+create or replace function public.tick_match()
+returns public.matches
+language plpgsql security definer set search_path = public as $$
+declare
+  moi uuid := auth.uid();
+  mon_signal public.signals; mon_profil public.profiles;
+  cand public.signals; cand_profil public.profiles; m public.matches;
+  signes text[] := array[
+    'un verre vide retourné, posé devant vous',
+    'un sous-verre posé sur le dessus du verre',
+    'le téléphone posé face contre la table',
+    'la veste sur une seule épaule',
+    'une paille pliée en deux, posée sur la table',
+    'une serviette nouée autour du poignet',
+    'deux verres côte à côte, dont un vide',
+    'la montre portée cadran côté paume'];
+  phrases text[] := array[
+    'La soirée vous plaît ?','Vous venez souvent ici ?',
+    'Belle ambiance, ce soir.','Vous permettez une question ?'];
+  reponses text[] := array[
+    'Davantage à l''instant.','Jamais assez, visiblement.',
+    'Elle vient de s''améliorer.','Seulement si c''est la bonne.'];
+  si int; pi int; qui_signe uuid; qui_parle public.profiles;
+  signe_f text; phrase_f text; reponse_f text;
+begin
+  if moi is null then return null; end if;
+  select * into m from public.matches
+    where (user_a = moi or user_b = moi) and annule = false and expires_at > now()
+    order by created_at desc limit 1;
+  if found then return m; end if;
+  select * into mon_signal from public.signals where user_id = moi;
+  if not found then return null; end if;
+  select * into mon_profil from public.profiles where id = moi;
+  if not found then return null; end if;
+  for cand in
+    select s.* from public.signals s
+    where s.venue_id = mon_signal.venue_id and s.user_id <> moi and s.expires_at > now()
+    order by s.created_at asc for update skip locked
+  loop
+    if exists (select 1 from public.blocks
+      where (blocker = moi and blocked = cand.user_id)
+         or (blocker = cand.user_id and blocked = moi)) then continue; end if;
+    select * into cand_profil from public.profiles where id = cand.user_id;
+    if not found then continue; end if;
+    if public.compatible(mon_profil.recherche, cand_profil.genre)
+       and public.compatible(cand_profil.recherche, mon_profil.genre) then
+      si := 1 + floor(random() * array_length(signes,1))::int;
+      pi := 1 + floor(random() * array_length(phrases,1))::int;
+      if random() < 0.5 then qui_signe := moi; qui_parle := cand_profil;
+      else qui_signe := cand.user_id; qui_parle := mon_profil; end if;
+      -- signe = celui de la personne qui fait le signe (ou aléatoire)
+      if qui_signe = moi then signe_f := coalesce(mon_profil.signe, signes[si]);
+      else signe_f := coalesce(cand_profil.signe, signes[si]); end if;
+      -- phrase/réponse = celles de la personne qui parle (ou aléatoire)
+      if qui_parle.phrase is not null then
+        phrase_f := qui_parle.phrase; reponse_f := coalesce(qui_parle.reponse, 'Enchanté.');
+      else phrase_f := phrases[pi]; reponse_f := reponses[pi]; end if;
+      insert into public.matches
+        (venue_id, user_a, user_b, role_signe, signe, phrase, reponse, expires_at)
+      values (mon_signal.venue_id, moi, cand.user_id, qui_signe,
+         signe_f, phrase_f, reponse_f, now() + interval '10 minutes')
+      returning * into m;
+      delete from public.signals where user_id in (moi, cand.user_id);
+      return m;
+    end if;
+  end loop;
+  return null;
+end;
+$$;
+grant execute on function public.tick_match() to authenticated;
+
+-- Signalements (sécurité) : un utilisateur peut signaler un problème.
+create table if not exists public.signalements (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users (id) on delete set null,
+  message text not null,
+  created_at timestamptz not null default now()
+);
+alter table public.signalements enable row level security;
+drop policy if exists "signalements_creation" on public.signalements;
+create policy "signalements_creation" on public.signalements for insert
+  with check (auth.uid() = user_id);
