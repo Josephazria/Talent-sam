@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BackIcon } from "@/components/Icons";
+import MatchActif from "@/components/MatchActif";
 import { fetchMyProfile } from "@/lib/profile";
 import {
   getMySignal,
@@ -11,6 +12,12 @@ import {
   deleteMySignal,
   type Signal,
 } from "@/lib/signal";
+import {
+  tickMatch,
+  annulerMatch,
+  monUserId,
+  type Match,
+} from "@/lib/match";
 import styles from "./activer.module.css";
 
 type Lieu = { id: string; nom: string; type: string; lat: number; lng: number };
@@ -22,18 +29,20 @@ type Etat =
   | "aucun_lieu"
   | "refus"
   | "actif"
+  | "match"
   | "termine";
 
-// Écrans 5 et 6 — Confirmation du lieu puis signal actif.
+// Écrans 5, 6 et 7 — confirmation du lieu, signal actif, match.
 export default function Activer() {
   const router = useRouter();
   const [etat, setEtat] = useState<Etat>("chargement");
   const [lieux, setLieux] = useState<Lieu[]>([]);
   const [choix, setChoix] = useState(0);
   const [signal, setSignal] = useState<Signal | null>(null);
+  const [match, setMatch] = useState<Match | null>(null);
+  const [myId, setMyId] = useState<string>("");
   const [occupe, setOccupe] = useState(false);
 
-  // Vérifie le compte et un éventuel signal déjà actif.
   useEffect(() => {
     let actif = true;
     (async () => {
@@ -43,6 +52,18 @@ export default function Activer() {
         router.replace("/compte");
         return;
       }
+      const id = await monUserId();
+      if (actif && id) setMyId(id);
+
+      // Déjà en match ?
+      const m = await tickMatch();
+      if (!actif) return;
+      if (m) {
+        setMatch(m);
+        setEtat("match");
+        return;
+      }
+      // Signal déjà actif ?
       const s = await getMySignal();
       if (!actif) return;
       if (s) {
@@ -57,7 +78,7 @@ export default function Activer() {
     };
   }, [router]);
 
-  // Lit la position UNE fois (jamais de suivi continu), puis cherche le lieu.
+  // Lit la position UNE seule fois, puis cherche le lieu.
   const activer = useCallback(() => {
     if (!("geolocation" in navigator)) {
       setEtat("refus");
@@ -68,9 +89,7 @@ export default function Activer() {
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
-          const res = await fetch(
-            `/api/lieux?lat=${latitude}&lng=${longitude}`
-          );
+          const res = await fetch(`/api/lieux?lat=${latitude}&lng=${longitude}`);
           const data = (await res.json()) as { lieux: Lieu[] };
           if (data.lieux && data.lieux.length > 0) {
             setLieux(data.lieux);
@@ -97,15 +116,26 @@ export default function Activer() {
       setOccupe(false);
       return;
     }
+    // Tente un match immédiat, sinon signal en attente.
+    const m = await tickMatch();
     const s = await getMySignal();
     setOccupe(false);
-    if (s) {
+    if (m) {
+      setMatch(m);
+      setEtat("match");
+    } else if (s) {
       setSignal(s);
       setEtat("actif");
     }
   }
 
-  async function annuler() {
+  function onMatch(m: Match) {
+    setMatch(m);
+    setSignal(null);
+    setEtat("match");
+  }
+
+  async function annulerSignal() {
     setOccupe(true);
     await deleteMySignal();
     setSignal(null);
@@ -113,9 +143,13 @@ export default function Activer() {
     router.push("/");
   }
 
-  function surExpiration() {
-    setSignal(null);
-    setEtat("termine");
+  async function annulerLeMatch() {
+    if (!match) return;
+    setOccupe(true);
+    await annulerMatch(match.id);
+    setMatch(null);
+    setOccupe(false);
+    router.push("/");
   }
 
   return (
@@ -138,10 +172,7 @@ export default function Activer() {
             <p className="subtitle mt-2">
               Vous êtes sur place. Nod va reconnaître le lieu, une seule fois.
             </p>
-            <button
-              className="btn btn--primary btn--block mt-4"
-              onClick={activer}
-            >
+            <button className="btn btn--primary btn--block mt-4" onClick={activer}>
               activer mon signal
             </button>
             <Link href="/evenement" className="link mt-3">
@@ -164,9 +195,7 @@ export default function Activer() {
         {etat === "confirmation" && lieux.length > 0 && (
           <div className={styles.bloc}>
             <p className="eyebrow">confirmation</p>
-            <h1 className="title mt-2">
-              vous êtes bien au {lieux[choix].nom} ?
-            </h1>
+            <h1 className="title mt-2">vous êtes bien au {lieux[choix].nom} ?</h1>
             <p className="subtitle mt-2">{lieux[choix].type}</p>
             <button
               className="btn btn--primary btn--block mt-4"
@@ -220,12 +249,15 @@ export default function Activer() {
             <p className="eyebrow">localisation nécessaire</p>
             <hr className="rule" />
             <p className="subtitle" style={{ maxWidth: 300 }}>
-              Nod a besoin de votre position, une seule fois, pour reconnaître
-              le lieu. Autorisez-la puis réessayez.
+              Nod a besoin de votre position, une seule fois, pour reconnaître le
+              lieu. Autorisez-la puis réessayez.
             </p>
             <button className="btn btn--primary btn--block mt-3" onClick={activer}>
               réessayer
             </button>
+            <Link href="/evenement" className="link mt-3">
+              événement privé ?
+            </Link>
           </div>
         )}
 
@@ -233,8 +265,25 @@ export default function Activer() {
           <SignalActif
             signal={signal}
             occupe={occupe}
-            onAnnuler={annuler}
-            onExpire={surExpiration}
+            onAnnuler={annulerSignal}
+            onMatch={onMatch}
+            onExpire={() => {
+              setSignal(null);
+              setEtat("termine");
+            }}
+          />
+        )}
+
+        {etat === "match" && match && myId && (
+          <MatchActif
+            match={match}
+            myId={myId}
+            occupe={occupe}
+            onAnnuler={annulerLeMatch}
+            onExpire={() => {
+              setMatch(null);
+              setEtat("termine");
+            }}
           />
         )}
 
@@ -259,19 +308,27 @@ function SignalActif({
   signal,
   occupe,
   onAnnuler,
+  onMatch,
   onExpire,
 }: {
   signal: Signal;
   occupe: boolean;
   onAnnuler: () => void;
+  onMatch: (m: Match) => void;
   onExpire: () => void;
 }) {
   const [reste, setReste] = useState(() =>
-    Math.max(0, Math.floor((new Date(signal.expires_at).getTime() - Date.now()) / 1000))
+    Math.max(
+      0,
+      Math.floor((new Date(signal.expires_at).getTime() - Date.now()) / 1000)
+    )
   );
   const expireRef = useRef(onExpire);
   expireRef.current = onExpire;
+  const matchRef = useRef(onMatch);
+  matchRef.current = onMatch;
 
+  // Compte à rebours
   useEffect(() => {
     const id = setInterval(() => {
       const s = Math.max(
@@ -286,6 +343,22 @@ function SignalActif({
     }, 1000);
     return () => clearInterval(id);
   }, [signal.expires_at]);
+
+  // Vérifie régulièrement si une rencontre se forme.
+  useEffect(() => {
+    let vivant = true;
+    const id = setInterval(async () => {
+      const m = await tickMatch();
+      if (vivant && m) {
+        clearInterval(id);
+        matchRef.current(m);
+      }
+    }, 4000);
+    return () => {
+      vivant = false;
+      clearInterval(id);
+    };
+  }, []);
 
   const mm = String(Math.floor(reste / 60)).padStart(2, "0");
   const ss = String(reste % 60).padStart(2, "0");
@@ -302,11 +375,7 @@ function SignalActif({
       </div>
       <p className={styles.venue}>{signal.venue_name}</p>
       <p className="muted mt-2">en attente d'un match</p>
-      <button
-        className="btn btn--ghost mt-4"
-        onClick={onAnnuler}
-        disabled={occupe}
-      >
+      <button className="btn btn--ghost mt-4" onClick={onAnnuler} disabled={occupe}>
         annuler
       </button>
     </div>

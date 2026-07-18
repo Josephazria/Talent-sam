@@ -1,0 +1,51 @@
+.bloc {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.role {
+  margin-top: 0.75rem;
+  font-size: clamp(2rem, 9vw, 2.6rem);
+  font-weight: 500;
+  color: var(--gold);
+  line-height: 1.15;
+}
+
+/* L'action à réaliser (le signe) ou la phrase à dire — en évidence */
+.action {
+  margin-top: 1.25rem;
+  font-size: 1.5rem;
+  color: var(--gold-bright);
+  line-height: 1.4;
+}
+
+.dit {
+  margin-top: 1rem;
+  font-size: 1.6rem;
+  color: var(--gold-bright);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+.instruction {
+  font-size: 1.1rem;
+  color: var(--gold-dim);
+  line-height: 1.5;
+  max-width: 320px;
+}
+
+.count {
+  margin-top: 2rem;
+  font-size: 1.6rem;
+  color: var(--gold-dim);
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.bloc .btn--ghost {
+  margin-top: 1.5rem;
+}

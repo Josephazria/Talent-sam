@@ -72,3 +72,126 @@ create policy "signaux_maj_de_soi"
 drop policy if exists "signaux_suppr_de_soi" on public.signals;
 create policy "signaux_suppr_de_soi"
   on public.signals for delete using (auth.uid() = user_id);
+
+-- ===========================================================================
+-- Matching (étape 4)
+-- ===========================================================================
+
+-- Compatibilité : la préférence « recherche » inclut-elle ce « genre » ?
+create or replace function public.compatible(recherche text, genre text)
+returns boolean language sql immutable as $$
+  select case
+    when recherche = 'les_deux' then true
+    when recherche = 'femmes' then genre = 'femme'
+    when recherche = 'hommes' then genre = 'homme'
+    else false
+  end;
+$$;
+
+create table if not exists public.matches (
+  id uuid primary key default gen_random_uuid(),
+  venue_id text not null,
+  user_a uuid not null references auth.users (id) on delete cascade,
+  user_b uuid not null references auth.users (id) on delete cascade,
+  role_signe uuid not null,
+  signe text not null,
+  phrase text not null,
+  reponse text not null,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  annule boolean not null default false
+);
+
+alter table public.matches enable row level security;
+
+drop policy if exists "matchs_lecture" on public.matches;
+create policy "matchs_lecture" on public.matches for select
+  using (auth.uid() = user_a or auth.uid() = user_b);
+drop policy if exists "matchs_maj" on public.matches;
+create policy "matchs_maj" on public.matches for update
+  using (auth.uid() = user_a or auth.uid() = user_b)
+  with check (auth.uid() = user_a or auth.uid() = user_b);
+
+-- Renvoie le match courant, en crée un si une personne compatible attend
+-- dans le même lieu, ou renvoie null. S'exécute avec les droits du
+-- propriétaire (accès à tous les signaux) pour trouver les candidats.
+create or replace function public.tick_match()
+returns public.matches
+language plpgsql security definer set search_path = public as $$
+declare
+  moi uuid := auth.uid();
+  mon_signal public.signals;
+  mon_profil public.profiles;
+  cand public.signals;
+  cand_profil public.profiles;
+  m public.matches;
+  signes text[] := array[
+    'un verre vide retourné, posé devant vous',
+    'un sous-verre posé sur le dessus du verre',
+    'le téléphone posé face contre la table',
+    'la veste sur une seule épaule',
+    'une paille pliée en deux, posée sur la table',
+    'une serviette nouée autour du poignet',
+    'deux verres côte à côte, dont un vide',
+    'la montre portée cadran côté paume'
+  ];
+  phrases text[] := array[
+    'La soirée vous plaît ?',
+    'Vous venez souvent ici ?',
+    'Belle ambiance, ce soir.',
+    'Vous permettez une question ?'
+  ];
+  reponses text[] := array[
+    'Davantage à l''instant.',
+    'Jamais assez, visiblement.',
+    'Elle vient de s''améliorer.',
+    'Seulement si c''est la bonne.'
+  ];
+  si int;
+  pi int;
+  qui_signe uuid;
+begin
+  if moi is null then return null; end if;
+
+  select * into m from public.matches
+    where (user_a = moi or user_b = moi) and annule = false and expires_at > now()
+    order by created_at desc limit 1;
+  if found then return m; end if;
+
+  select * into mon_signal from public.signals where user_id = moi;
+  if not found then return null; end if;
+  select * into mon_profil from public.profiles where id = moi;
+  if not found then return null; end if;
+
+  for cand in
+    select s.* from public.signals s
+    where s.venue_id = mon_signal.venue_id
+      and s.user_id <> moi
+      and s.expires_at > now()
+    order by s.created_at asc
+    for update skip locked
+  loop
+    select * into cand_profil from public.profiles where id = cand.user_id;
+    if not found then continue; end if;
+    if public.compatible(mon_profil.recherche, cand_profil.genre)
+       and public.compatible(cand_profil.recherche, mon_profil.genre) then
+      si := 1 + floor(random() * array_length(signes, 1))::int;
+      pi := 1 + floor(random() * array_length(phrases, 1))::int;
+      if random() < 0.5 then qui_signe := moi; else qui_signe := cand.user_id; end if;
+      insert into public.matches
+        (venue_id, user_a, user_b, role_signe, signe, phrase, reponse, expires_at)
+      values
+        (mon_signal.venue_id, moi, cand.user_id, qui_signe,
+         signes[si], phrases[pi], reponses[pi], now() + interval '10 minutes')
+      returning * into m;
+      delete from public.signals where user_id in (moi, cand.user_id);
+      return m;
+    end if;
+  end loop;
+
+  return null;
+end;
+$$;
+
+grant execute on function public.compatible(text, text) to authenticated;
+grant execute on function public.tick_match() to authenticated;
