@@ -33,8 +33,8 @@ npm run start
 ## Avancement
 
 - [x] Étape 1 — Squelette, design system, accueil, « comment ça marche »
-- [ ] Étape 2 — Compte (Google/Apple), vérification 18+, profil
-- [ ] Étape 3 — Détection de lieu, signal, expiration, suppression des données
+- [x] Étape 2 — Compte (lien e-mail), vérification 18+, profil (Google à ajouter)
+- [x] Étape 3 — Détection de lieu (OpenStreetMap), signal 30 min, expiration
 - [ ] Étape 4 — Matching, rôles, notifications push
 - [ ] Étape 5 — Codes événement
 - [ ] Étape 6 — Carte

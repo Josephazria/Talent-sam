@@ -1,0 +1,92 @@
+.bloc {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Cercles concentriques qui pulsent */
+.pulse {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1rem 0;
+}
+.ring {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  opacity: 0;
+  animation: pulse 3.6s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+.ring:nth-child(2) {
+  animation-delay: 1.2s;
+}
+.ring:nth-child(3) {
+  animation-delay: 2.4s;
+}
+@keyframes pulse {
+  0% {
+    transform: scale(0.35);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Compte à rebours au centre */
+.count {
+  position: relative;
+  z-index: 1;
+  font-size: 2.8rem;
+  font-weight: 400;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.venue {
+  font-size: 1.5rem;
+  color: var(--gold);
+  margin-top: 1rem;
+}
+
+/* Alternatives de lieu */
+.alternatives {
+  width: 100%;
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.alt {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  font-size: 1.1rem;
+  color: var(--gold-dim);
+  background: transparent;
+  border: 1px solid var(--gold-faint);
+  border-radius: var(--radius);
+  transition: all 0.3s ease;
+}
+.alt:active,
+.alt:hover {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    animation-duration: 6s;
+  }
+}
