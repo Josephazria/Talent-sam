@@ -2,6 +2,19 @@ import sys, os, argparse
 sys.path.insert(0, "/home/claude/doctorgane/kin")
 from kinetic import *
 ap = argparse.ArgumentParser(); ap.add_argument("--out"); ap.add_argument("--preview"); ap.add_argument("--music"); ap.add_argument("--gain", type=float, default=0.5); args = ap.parse_args()
+
+def slow(scenes, k=2.0, anim=1.4, cover=1.0):
+    """Ralentit tout le film : durées de scènes et instants d'apparition ×k, animations ×anim ; la couverture passe à `cover` s."""
+    for i, sc in enumerate(scenes):
+        if i == 0 and sc.flash is False: sc.dur = cover; continue
+        sc.dur *= k
+        for it in sc.items:
+            if hasattr(it, "t0"): it.t0 = it.t0 * k if it.t0 > 0 else it.t0
+            if getattr(it, "t1", None) is not None: it.t1 *= k
+            if hasattr(it, "step"): it.step *= k; it.ticks = [it.t0 + j * it.step for j in range(it.n)]
+            if hasattr(it, "life"): it.life *= k
+            if hasattr(it, "dur") and not hasattr(it, "step"): it.dur *= anim
+
 M = "Medium"; SLATE = (52, 66, 104)
 
 # S0 — couverture (image 1 = miniature), statique 0,8 s
@@ -76,7 +89,7 @@ s6 = [Word("LE BUT DE LA MÉDECINE,", 540, 380, 84, CREAM, 0.1, anim="pop"),
       Word("Pose-moi ta question en commentaire.", 540, 1560, 44, CREAM, 3.7, anim="up", font="pop", snd=None)]
 S6 = Scene(5.2, s6, bg=NAVY)
 
-film = Film([S0, S1, S2, S3, S4, S5, S6])
+SC = [S0, S1, S2, S3, S4, S5, S6]; slow(SC, 2.0); film = Film(SC)
 print("durée", round(film.dur, 2), [round(b, 2) for b in film.bounds])
 if args.preview:
     os.makedirs("prev", exist_ok=True)
