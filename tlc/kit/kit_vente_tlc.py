@@ -8,8 +8,9 @@ date · « En live sur Whatnot ». Fond papier #F3EEE3 (ou la couleur de la marq
 détouré(s) posé(s) en bas avec une ombre douce.
 
 Depuis le 05/10/2026 (Joseph, vente Lancaster 3) :
-  - KIT 5 par défaut (« un peu moins de visuels, c'est trop ») : post annonce 4:5, story annonce, story « C'est ce soir »,
-    hero site, + 1 réel (tlc_reels.py --which r1). `--court` = l'ancien kit express (22 fichiers), `--complet` = intégral.
+  - KIT 5 par défaut (« un peu moins de visuels, c'est trop ») : post annonce 4:5, story annonce, story veille
+    (« Enregistre le live pour être prévenue », programmée J-1 12h), story « C'est ce soir », hero site, + 1 réel
+    (tlc_reels.py --which r1, programmé J-1 12h). `--court` = l'ancien kit express (22 fichiers), `--complet` = intégral.
   - Wording : « VENTE EXCLUSIVE » / « Vente exclusive jusqu'à −XX % » (plus « vente privée »).
   - Texte CENTRÉ (Joseph, 05/10/2026 : « écrire le texte au centre et centré, c'est mieux ») : sur couverture et coin,
     le bloc remise · date · Whatnot · logo est centré horizontalement, bas du bloc à 86 % de la hauteur.
@@ -48,6 +49,7 @@ LIVE_PX = 40      # « En live sur Whatnot » dans le bloc typo
 PAGE_DATE_PX = 56 # date + heure sur les pleines pages sponso / coin / couverture / manchette
 PAGE_LIVE_PX = 40 # « En live sur Whatnot » sur les pleines pages (05/10/2026)
 LIVE_LINE = "En live sur Whatnot"   # Joseph, 05/10/2026 : « écris bien que c'est sur Whatnot »
+VEILLE_LINE = "Enregistre le live pour être prévenue"   # story de la veille 12h (Joseph, 05/10/2026), programmée dans Postiz
 SPONSO_LOGO_PX = 440  # logo B sur la sponso (Joseph, 30/09/2026 : 140 trop petit, 540 et 800 trop gros)
 HERE = os.path.dirname(os.path.abspath(__file__))
 FONT_F = os.path.join(HERE, "fonts", "Fraunces.ttf")
@@ -171,11 +173,15 @@ class Kit:
         l2 = f"Vente exclusive jusqu’à −{self.remise} %" if self.remise else "Vente exclusive"
         pb = d.textbbox((0, 0), l2, font=f_p); ph = pb[3] - pb[1]
         lk = logo_col(120, col)
-        total = ph + 36 + PAGE_DATE_PX + 14 + PAGE_LIVE_PX + 40 + lk.height
+        extra = getattr(self, "extra", None); f_e = fraunces(44, 400) if extra else None
+        eb = d.textbbox((0, 0), extra, font=f_e) if extra else (0, 0, 0, 0); eh = (eb[3] - eb[1] + 30) if extra else 0
+        total = ph + 36 + PAGE_DATE_PX + 14 + PAGE_LIVE_PX + eh + 40 + lk.height
         y = int(H * bottom_frac) - total; top = y
         center(d, cx, y - pb[1], l2, f_p, col); y += ph + 36
         spaced(d, cx, y, self.when_dot, f_d, col, 1.0); y += PAGE_DATE_PX + 14
-        spaced(d, cx, y, LIVE_LINE, f_l, col, 1.5); y += PAGE_LIVE_PX + 40
+        spaced(d, cx, y, LIVE_LINE, f_l, col, 1.5); y += PAGE_LIVE_PX
+        if extra: y += 30; center(d, cx, y - eb[1], extra, f_e, col); y += eb[3] - eb[1]
+        y += 40
         return top, lk, y
 
     def couverture(self, photo, key, mask, anchor=0.0, W=1080, H=1350, ext=0.16, tag="post"):
@@ -526,6 +532,9 @@ def kit_cinq(k, a):
         if head_in_frame(mask):
             k.couverture(photo, key, mask, anc)                                              # 1 post
             k.couverture(photo, key, mask, anc, W=1080, H=1920, ext=0.20, tag="story")      # 2 story
+            k.extra = VEILLE_LINE
+            k.couverture(photo, key, mask, anc, W=1080, H=1920, ext=0.20, tag="story_veille")  # 2b story J-1 (programmée)
+            k.extra = None
             k.when_dot, k.when_comma = cesoir_dot, cesoir_comma
             k.couverture(photo, key, mask, anc, W=1080, H=1920, ext=0.20, tag="story_cesoir")  # 3 story J-0
         else:
