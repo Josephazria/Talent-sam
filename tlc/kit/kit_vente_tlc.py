@@ -11,6 +11,8 @@ Depuis le 05/10/2026 (Joseph, vente Lancaster 3) :
   - KIT 5 par défaut (« un peu moins de visuels, c'est trop ») : post annonce 4:5, story annonce, story « C'est ce soir »,
     hero site, + 1 réel (tlc_reels.py --which r1). `--court` = l'ancien kit express (22 fichiers), `--complet` = intégral.
   - Wording : « VENTE EXCLUSIVE » / « Vente exclusive jusqu'à −XX % » (plus « vente privée »).
+  - Texte CENTRÉ (Joseph, 05/10/2026 : « écrire le texte au centre et centré, c'est mieux ») : sur couverture et coin,
+    le bloc remise · date · Whatnot · logo est centré horizontalement, bas du bloc à 86 % de la hauteur.
   - « sur Whatnot » est écrit sur TOUS les visuels : la ligne « En live » devient « En live sur Whatnot »
     (bloc typo, packshots, bandeau site, tuile prix) et une ligne « En live sur Whatnot » est ajoutée sous
     la date sur les pleines pages (sponso, coin, couverture, manchette).
@@ -159,6 +161,23 @@ class Kit:
         y -= int(PAGE_DATE_PX * s) + int(14 * s); tracked(d, m, y, self.when_dot, f_d, col, 1.0)
         return y
 
+    def _bloc_centre(self, d, W, H, col, bottom_frac=0.86):
+        """Bloc texte centré (Joseph, 05/10/2026 : « le texte au centre et centré, c'est mieux ») :
+        « Vente exclusive jusqu'à −XX % » · date · heure · « En live sur Whatnot » · logo, le tout centré,
+        bas du bloc à bottom_frac × H. Retourne le y du haut du bloc."""
+        cx = W // 2; m = 64
+        f_p = fraunces(62, 400); f_d = fit_archivo(d, self.when_dot, PAGE_DATE_PX, W - 2 * m)
+        f_l = fit_archivo(d, LIVE_LINE, PAGE_LIVE_PX, W - 2 * m, w=500, sp=1.5)
+        l2 = f"Vente exclusive jusqu’à −{self.remise} %" if self.remise else "Vente exclusive"
+        pb = d.textbbox((0, 0), l2, font=f_p); ph = pb[3] - pb[1]
+        lk = logo_col(120, col)
+        total = ph + 36 + PAGE_DATE_PX + 14 + PAGE_LIVE_PX + 40 + lk.height
+        y = int(H * bottom_frac) - total; top = y
+        center(d, cx, y - pb[1], l2, f_p, col); y += ph + 36
+        spaced(d, cx, y, self.when_dot, f_d, col, 1.0); y += PAGE_DATE_PX + 14
+        spaced(d, cx, y, LIVE_LINE, f_l, col, 1.5); y += PAGE_LIVE_PX + 40
+        return top, lk, y
+
     def couverture(self, photo, key, mask, anchor=0.0, W=1080, H=1350, ext=0.16, tag="post"):
         """« Couverture » : nom en manchette tout en haut, la mannequin passe devant les lettres, photo claire."""
         g = np.array(photo.convert("L")).astype(float); mk0 = np.array(mask).astype(float) / 255
@@ -176,39 +195,33 @@ class Kit:
             bh = bb[3] - bb[1]; top = int(min(max(40, head_top - 0.62 * bh), H * 0.45 - bh))
         d.text(((W - (bb[2] - bb[0])) / 2 - bb[0], top - bb[1]), self.marque, font=f_b, fill=INK)
         out = Image.alpha_composite(base.convert("RGBA"), txt); out.paste(base, (0, 0), mk)
-        zone = np.array(base.crop((0, int(H * 0.78), W, H)).convert("L"))
+        zone = np.array(base.crop((0, int(H * 0.60), W, int(H * 0.88))).convert("L"))
         studio_clair = bgpix.size > 100 and bgpix.mean() > 170
-        block_h = PAGE_LIVE_PX + 14 + PAGE_DATE_PX + 40 + 78 + 80
+        block_top = int(H * 0.86) - 400
         if studio_clair or (zone.mean() > 150 and np.percentile(zone, 15) > 110):
             out = out.convert("RGB"); col = INK
-            mkz = np.array(mk.crop((0, H - 64 - block_h, 560, H - 64 + 20))).astype(float) / 255
-            if mkz.mean() > 0.06: out = veil_bottom(out, from_y=H - 64 - block_h - 40)
+            mkz = np.array(mk.crop((160, block_top, W - 160, int(H * 0.86)))).astype(float) / 255
+            if mkz.mean() > 0.06: out = veil_bottom(out, from_y=block_top - 60)
         else:
-            g0 = int(H * 0.66)
-            out = Image.composite(Image.new("RGBA", (W, H), (14, 12, 10, 255)), out, vgrad_img(W, H, lambda y: (y - g0) / (H - g0) * 200)).convert("RGB"); col = PAPER
-        d = ImageDraw.Draw(out); m = 64
-        y = self._bottom_lines(d, m, H, col, 1.0, W)
-        l2 = f"Vente exclusive jusqu’à −{self.remise} %" if self.remise else "Vente exclusive"
-        d.text((m, y - 40 - 78), l2, font=fraunces(62, 400), fill=col)
-        lk = logo_col(130, col); out.paste(lk, (W - m - lk.width, H - m - lk.height + 8), lk)
+            g0 = int(H * 0.46)
+            out = Image.composite(Image.new("RGBA", (W, H), (14, 12, 10, 255)), out, vgrad_img(W, H, lambda y: (y - g0) / (H - g0) * 215)).convert("RGB"); col = PAPER
+        d = ImageDraw.Draw(out)
+        top_y, lk, y_logo = self._bloc_centre(d, W, H, col)
+        out.paste(lk, (W // 2 - lk.width // 2, y_logo), lk)
         self.save(out, f"couverture_{key}_{tag}")
 
     def coin(self, photo, key, anchor=0.0):
-        """« Coin » : tout le texte en bas à gauche ; logo en haut à droite (encre ou papier selon le fond)."""
+        """« Coin » : nom + bloc centrés dans le bas de l'image (centré depuis le 05/10/2026)."""
         for tag, W, H in (("post", 1080, 1350), ("story", 1080, 1920)):
             s = W / 1080; base = cover_img(photo, W, H, anchor); g0 = int(H * 0.40)
             out = Image.composite(Image.new("RGB", (W, H), (14, 12, 10)), base, vgrad_img(W, H, lambda y: (y - g0) / (H - g0) * 215))
-            d = ImageDraw.Draw(out); m = int(64 * s)
-            f_b = fraunces(self._fit_name(d, int(210 * s), W - 2 * m)); f_p = fraunces(int(60 * s), 400); fk = archivo(int(30 * s), 600)
-            l2 = f"Vente exclusive jusqu’à −{self.remise} %" if self.remise else "Vente exclusive"
+            d = ImageDraw.Draw(out); m = int(64 * s); cx = W // 2
+            f_b = fraunces(self._fit_name(d, int(210 * s), W - 2 * m)); fk = archivo(int(30 * s), 600)
             bb = d.textbbox((0, 0), self.marque, font=f_b)
-            y = self._bottom_lines(d, m, H, PAPER, s, W)
-            if self.remise: y -= int(96 * s); d.text((m, y), l2, font=f_p, fill=PAPER)
-            else: y -= int(34 * s)
-            y -= (bb[3] - bb[1]) + int(26 * s); d.text((m - bb[0], y - bb[1]), self.marque, font=f_b, fill=PAPER)
-            y -= int(66 * s); tracked(d, m, y, "VENTE EXCLUSIVE", fk, PAPER, 8)
-            top = np.array(base.crop((W - 260, 40, W - 40, 260)).convert("L")).mean()
-            lk = logo_col(int(130 * s), INK if top > 140 else PAPER); out.paste(lk, (W - m - lk.width, m - 8), lk)
+            top_y, lk, y_logo = self._bloc_centre(d, W, H, PAPER)
+            out.paste(lk, (cx - lk.width // 2, y_logo), lk)
+            y = top_y - int(26 * s) - (bb[3] - bb[1]); center(d, cx, y - bb[1], self.marque, f_b, PAPER)
+            y -= int(66 * s); spaced(d, cx, y, "VENTE EXCLUSIVE", fk, PAPER, 8)
             self.save(out, f"coin_{key}_{tag}")
 
     def coin_clair(self, photo, key, anchor=0.0):
