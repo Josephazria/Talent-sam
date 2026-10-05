@@ -3,6 +3,39 @@ import sys, argparse, os
 sys.path.insert(0, "/home/claude/doctorgane/reel3")
 from feutre import *
 
+from PIL import ImageOps
+
+class Photo:
+    """Photo réelle intégrée au dessin : duotone papier/navy, coins arrondis, fondu d'apparition, cadre au feutre dessiné à part."""
+    kind = "text"; pen = False; snd = None
+    def __init__(s, path, cx, cy, w, t0, dur=0.6, h=None, radius=36, tint=True):
+        im = Image.open(path).convert("RGB")
+        W_ = int(w * SS); H_ = int((h if h else w * im.height / im.width) * SS)
+        im = ImageOps.fit(im, (W_, H_), Image.LANCZOS)
+        if tint:
+            g = ImageOps.autocontrast(im.convert("L"))
+            im = ImageOps.colorize(g, black=(26, 40, 70), white=(250, 246, 238), mid=(140, 130, 125))
+        else:
+            from PIL import ImageEnhance
+            im = ImageEnhance.Color(im).enhance(0.82)
+        mask = Image.new("L", (W_, H_), 0); ImageDraw.Draw(mask).rounded_rectangle([0, 0, W_ - 1, H_ - 1], radius=int(radius * SS), fill=255)
+        s.im = im; s.mask = np.asarray(mask); s.ox = int(cx * SS - W_ / 2); s.oy = int(cy * SS - H_ / 2)
+        s.t0 = t0; s.dur = dur; s.baked = False
+    def reset(s): s.baked = False
+    def prog(s, lt): return clamp((lt - s.t0) / s.dur)
+    def paste(s, canvas, lt):
+        p = s.prog(lt)
+        if p <= 0: return
+        m = Image.fromarray((s.mask * ease_io(p)).astype(np.uint8))
+        canvas.paste(s.im, (s.ox, s.oy), m)
+    def advance(s, lt, canvas):
+        if not s.baked and lt >= s.t0 + s.dur: s.paste(canvas, lt); s.baked = True
+    def head(s, lt): return (s.ox / SS, s.oy / SS)
+    def active(s, lt): return False
+
+def photo_frame(cx, cy, w, h, t0, dur=0.5, seed=90, col=NAVY, radius=36):
+    return Stroke(rrect(cx - w / 2, cy - h / 2, w, h, radius), col, 9, t0, dur, seed=seed, amp=1.3)
+
 ap = argparse.ArgumentParser(); ap.add_argument("--out"); ap.add_argument("--preview"); ap.add_argument("--no-audio", action="store_true")
 args = ap.parse_args()
 
@@ -41,42 +74,43 @@ def elephant(ox=0, oy=0, k=1.0):
     tusk = catmull([P(336,872), P(312,900), P(286,926), P(270,934)], 8)
     return body, ear, tusk, P(432,758)
 
-# ============ S1 : accroche ============
+# ============ S1 : accroche (photo Masai Mara, CC0) ============
 it1 = []
-it1.append(Text("Un éléphant a", 540, 300, 118, NAVY, 0.0, dur=0.6, anchor="c"))
-it1.append(Text("100 fois plus de cellules", 540, 425, 118, CORAL, 0.6, dur=0.9, anchor="c"))
-it1.append(Text("que toi.", 540, 550, 118, NAVY, 1.5, dur=0.4, anchor="c"))
-body, ear, tusk, eye = elephant(0, 0, 1.0)
-it1.append(Stroke(body, NAVY, 11, 1.9, 2.0, seed=71, amp=1.4))
-it1.append(Stroke(ear, NAVY, 10, 3.95, 0.5, seed=72, amp=1.2))
-it1.append(Stroke(tusk, NAVY, 9, 4.45, 0.2, seed=73, amp=.8, pen=False))
-it1.append(Stroke(ellipse(eye[0], eye[1], 7, 7, 1.1, 0), NAVY, 9, 4.65, 0.12, snd="tick", seed=74, amp=.5, pen=False))
-# petit humain
-it1.append(Stroke(ellipse(985, 1060, 16, 16, 1.08, -90), CORAL, 8, 4.8, 0.2, seed=75, amp=.6, pen=False))
-it1.append(Stroke([(985, 1078), (985, 1122), (968, 1150)], CORAL, 8, 5.0, 0.18, seed=76, amp=.6, pen=False))
-it1.append(Stroke([(985, 1122), (1002, 1150)], CORAL, 8, 5.15, 0.1, seed=77, amp=.6, pen=False))
-it1.append(Stroke([(966, 1095), (1004, 1095)], CORAL, 8, 5.22, 0.1, seed=78, amp=.6, pen=False))
-it1.append(Text("toi", 985, 1210, 56, CORAL, 5.3, dur=0.25, anchor="c", pen=False))
-it1.append(Text("Il devrait avoir", 540, 1360, 100, NAVY, 5.6, dur=0.7, anchor="c"))
-it1.append(Text("100 fois plus de cancers.", 540, 1475, 100, CORAL, 6.3, dur=0.9, anchor="c"))
-S1 = Scene(8.2, it1)
+it1.append(Text("Un éléphant a", 540, 290, 118, NAVY, 0.0, dur=0.6, anchor="c"))
+it1.append(Text("100 fois plus de cellules", 540, 415, 118, CORAL, 0.6, dur=0.9, anchor="c"))
+it1.append(Text("que toi.", 540, 540, 118, NAVY, 1.5, dur=0.4, anchor="c"))
+PW, PHh = 880, 587
+it1.append(Photo("/home/claude/doctorgane/reel6/photos/masai.jpg", 540, 920, PW, 2.0, 0.7, tint=False))
+it1.append(photo_frame(540, 920, PW, PHh, 2.5, 0.6, seed=91))
+it1.append(Mark(2.0, "pop"))
+# petit humain à l'échelle, dessiné dans le coin de la photo
+hx, hy = 905, 1120
+it1.append(Stroke(ellipse(hx, hy, 14, 14, 1.08, -90), CORAL, 8, 3.3, 0.2, seed=75, amp=.6, pen=False))
+it1.append(Stroke([(hx, hy + 16), (hx, hy + 56), (hx - 15, hy + 82)], CORAL, 8, 3.5, 0.18, seed=76, amp=.6, pen=False))
+it1.append(Stroke([(hx, hy + 56), (hx + 15, hy + 82)], CORAL, 8, 3.65, 0.1, seed=77, amp=.6, pen=False))
+it1.append(Stroke([(hx - 17, hy + 32), (hx + 17, hy + 32)], CORAL, 8, 3.72, 0.1, seed=78, amp=.6, pen=False))
+it1.append(Text("toi", hx, hy + 130, 50, CORAL, 3.8, dur=0.25, anchor="c", pen=False))
+it1.append(Text("Il devrait avoir", 540, 1340, 100, NAVY, 4.3, dur=0.7, anchor="c"))
+it1.append(Text("100 fois plus de cancers.", 540, 1455, 100, CORAL, 5.0, dur=0.9, anchor="c"))
+S1 = Scene(7.0, it1)
 
-# ============ S2 : il en a moins ============
+# ============ S2 : il en a moins (photo savane, CC0) ============
 it2 = []
-it2.append(Text("Il en a moins.", 540, 360, 160, CORAL, 0.0, dur=0.7, anchor="c"))
-it2.append(underline("Il en a moins.", 160, 540, 400, CORAL, 0.75, 0.35, 12))
-it2.append(Text("Meurent d'un cancer :", 540, 560, 76, GREY, 1.2, dur=0.7, anchor="c", wght=400))
-BX, BW, BH = 120, 840, 70
-it2.append(Text("Éléphants", BX, 700, 80, NAVY, 2.0, dur=0.5))
-it2.append(Stroke(rrect(BX, 730, BW, BH, 22), NAVY, 8, 2.5, 0.5, seed=21, pen=False))
-it2.append(Stroke([(BX + 12, 765), (BX + 12 + BW * 0.05 + 20, 765)], CORAL, 42, 3.0, 0.25, seed=22, amp=.5, pen=False))
-it2.append(Text("moins de 5 %", BX + BW * 0.05 + 60, 790, 76, CORAL, 3.3, dur=0.5))
-it2.append(Text("Humains", BX, 960, 80, NAVY, 4.0, dur=0.5))
-it2.append(Stroke(rrect(BX, 990, BW, BH, 22), NAVY, 8, 4.5, 0.5, seed=23, pen=False))
-it2.append(Stroke([(BX + 12, 1025), (BX + 12 + BW * 0.25 - 12, 1025)], NAVY, 42, 5.0, 0.5, seed=24, amp=.5, pen=False))
-it2.append(Text("11 à 25 %", BX + BW * 0.25 + 40, 1050, 76, NAVY, 5.55, dur=0.5))
-it2.append(Text("644 éléphants autopsiés", 540, 1300, 62, GREY, 6.2, dur=0.7, anchor="c", wght=400))
-it2.append(Text("Étude publiée en 2015", 540, 1380, 62, GREY, 6.9, dur=0.6, anchor="c", wght=400))
+it2.append(Text("Il en a moins.", 540, 330, 160, CORAL, 0.0, dur=0.7, anchor="c"))
+it2.append(underline("Il en a moins.", 160, 540, 370, CORAL, 0.75, 0.35, 12))
+it2.append(Photo("/home/claude/doctorgane/reel6/photos/sun.jpg", 540, 640, 640, 1.1, 0.6, tint=False))
+it2.append(photo_frame(540, 640, 640, 427, 1.5, 0.5, seed=92))
+it2.append(Text("Meurent d'un cancer :", 540, 935, 70, GREY, 2.1, dur=0.6, anchor="c", wght=400))
+BX, BW, BH = 120, 840, 64
+it2.append(Text("Éléphants", BX, 1030, 74, NAVY, 2.7, dur=0.4))
+it2.append(Stroke(rrect(BX, 1055, BW, BH, 20), NAVY, 8, 3.1, 0.45, seed=21, pen=False))
+it2.append(Stroke([(BX + 12, 1087), (BX + 12 + BW * 0.05 + 20, 1087)], CORAL, 38, 3.55, 0.25, seed=22, amp=.5, pen=False))
+it2.append(Text("moins de 5 %", BX + BW * 0.05 + 60, 1108, 70, CORAL, 3.8, dur=0.5))
+it2.append(Text("Humains", BX, 1225, 74, NAVY, 4.4, dur=0.4))
+it2.append(Stroke(rrect(BX, 1250, BW, BH, 20), NAVY, 8, 4.8, 0.45, seed=23, pen=False))
+it2.append(Stroke([(BX + 12, 1282), (BX + 12 + BW * 0.25 - 12, 1282)], NAVY, 38, 5.25, 0.45, seed=24, amp=.5, pen=False))
+it2.append(Text("11 à 25 %", BX + BW * 0.25 + 40, 1303, 70, NAVY, 5.75, dur=0.5))
+it2.append(Text("644 éléphants autopsiés · étude publiée en 2015", 540, 1440, 54, GREY, 6.35, dur=0.9, anchor="c", wght=400))
 S2 = Scene(8.0, it2)
 
 # ============ S3 : le gène gardien ============
@@ -111,34 +145,34 @@ it4.append(Text("l'ordre de mourir,", 540, 1325, 80, NAVY, 5.3, dur=0.6, anchor=
 it4.append(Text("2 fois plus souvent que chez nous.", 540, 1430, 80, CORAL, 5.9, dur=1.0, anchor="c"))
 S4 = Scene(7.9, it4)
 
-# ============ S5 : le vertige ============
+# ============ S5 : le vertige (photo œil, CC0) ============
 it5 = []
-it5.append(Text("Chez l'humain,", 540, 420, 100, NAVY, 0.0, dur=0.5, anchor="c"))
-it5.append(Text("quand ce gène est en panne", 540, 540, 90, NAVY, 0.55, dur=0.9, anchor="c"))
-it5.append(Text("de naissance,", 540, 650, 90, NAVY, 1.45, dur=0.5, anchor="c"))
-it5.append(Text("le cancer arrive", 540, 830, 110, CORAL, 2.1, dur=0.6, anchor="c"))
-it5.append(Text("presque à coup sûr.", 540, 955, 110, CORAL, 2.7, dur=0.75, anchor="c"))
-it5.append(Text("C'est dire ce qu'il vaut.", 540, 1180, 92, NAVY, 3.7, dur=0.9, anchor="c"))
-it5.append(underline("C'est dire ce qu'il vaut.", 92, 540, 1215, CORAL, 4.6, 0.3, 14))
-it5.append(Text("(maladie génétique rare : syndrome de Li-Fraumeni)", 540, 1330, 48, GREY, 4.9, dur=0.8, anchor="c", wght=400))
-S5 = Scene(6.4, it5)
+it5.append(Text("Chez l'humain,", 540, 330, 96, NAVY, 0.0, dur=0.5, anchor="c"))
+it5.append(Text("quand ce gène est en panne", 540, 440, 88, NAVY, 0.55, dur=0.9, anchor="c"))
+it5.append(Text("de naissance,", 540, 545, 88, NAVY, 1.45, dur=0.5, anchor="c"))
+it5.append(Text("le cancer arrive", 540, 710, 108, CORAL, 2.1, dur=0.6, anchor="c"))
+it5.append(Text("presque à coup sûr.", 540, 830, 108, CORAL, 2.7, dur=0.75, anchor="c"))
+it5.append(Text("(maladie génétique rare : syndrome de Li-Fraumeni)", 540, 905, 44, GREY, 3.5, dur=0.7, anchor="c", wght=400))
+it5.append(Text("C'est dire ce qu'il vaut.", 540, 1040, 92, NAVY, 4.3, dur=0.9, anchor="c"))
+it5.append(underline("C'est dire ce qu'il vaut.", 92, 540, 1075, CORAL, 5.2, 0.3, 14))
+it5.append(Photo("/home/claude/doctorgane/reel6/photos/memory.jpg", 540, 1320, 560, 5.3, 0.6, tint=False))
+it5.append(photo_frame(540, 1320, 560, 373, 5.7, 0.45, seed=93))
+S5 = Scene(7.0, it5)
 
-# ============ S6 : la chute ============
+# ============ S6 : la chute (photo mère et petit, CC0) ============
 it6 = []
-it6.append(Text("Aujourd'hui, des chercheurs", 540, 330, 84, NAVY, 0.0, dur=0.8, anchor="c"))
-it6.append(Text("testent la version éléphant", 540, 430, 84, NAVY, 0.8, dur=0.8, anchor="c"))
-it6.append(Text("de ce gène contre", 540, 530, 84, NAVY, 1.6, dur=0.6, anchor="c"))
-it6.append(Text("des cancers humains.", 540, 630, 84, CORAL, 2.2, dur=0.7, anchor="c"))
-body, ear, tusk, eye = elephant(230, 335, 0.55)
-it6.append(Stroke(body, NAVY, 9, 3.0, 1.2, seed=81, amp=1.2))
-it6.append(Stroke(ear, NAVY, 8, 4.2, 0.35, seed=82, amp=1.0))
-it6.append(Stroke(ellipse(eye[0], eye[1], 5, 5, 1.1, 0), NAVY, 8, 4.55, 0.1, snd="tick", seed=84, amp=.4, pen=False))
-it6.append(Text("La réponse était peut-être", 540, 1050, 84, NAVY, 4.7, dur=0.8, anchor="c"))
-it6.append(Text("dans la savane.", 540, 1150, 84, CORAL, 5.5, dur=0.6, anchor="c"))
-it6.append(Stroke(ribbon(540, 1330, 95), CORAL, 13, 6.2, 0.8, seed=50, amp=1.1))
-it6.append(Mark(7.0, "chime"))
-it6.append(Text("Partage-le à quelqu'un qui aime les éléphants", 540, 1500, 62, GREY, 7.05, dur=1.0, anchor="c", wght=400))
-S6 = Scene(9.0, it6, erase=0)
+it6.append(Text("Aujourd'hui, des chercheurs", 540, 300, 80, NAVY, 0.0, dur=0.8, anchor="c"))
+it6.append(Text("testent la version éléphant", 540, 395, 80, NAVY, 0.8, dur=0.8, anchor="c"))
+it6.append(Text("de ce gène contre", 540, 490, 80, NAVY, 1.6, dur=0.6, anchor="c"))
+it6.append(Text("des cancers humains.", 540, 585, 80, CORAL, 2.2, dur=0.7, anchor="c"))
+it6.append(Photo("/home/claude/doctorgane/reel6/photos/calf.jpg", 540, 870, 680, 3.0, 0.7, tint=False))
+it6.append(photo_frame(540, 870, 680, 453, 3.5, 0.5, seed=94))
+it6.append(Text("La réponse était peut-être", 540, 1200, 84, NAVY, 4.2, dur=0.8, anchor="c"))
+it6.append(Text("dans la savane.", 540, 1300, 84, CORAL, 5.0, dur=0.6, anchor="c"))
+it6.append(Stroke(ribbon(540, 1420, 62), CORAL, 11, 5.7, 0.7, seed=50, amp=1.0))
+it6.append(Mark(6.4, "chime"))
+it6.append(Text("Partage-le à quelqu'un qui aime les éléphants", 540, 1530, 56, GREY, 6.45, dur=1.0, anchor="c", wght=400))
+S6 = Scene(8.4, it6, erase=0)
 
 film = Film([S1, S2, S3, S4, S5, S6])
 print("durée", round(film.dur, 2), "s", film.nf, "images", [round(b, 2) for b in film.bounds])
