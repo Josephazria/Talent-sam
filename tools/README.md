@@ -25,4 +25,10 @@ Couche 2 « marchandise » (3 stories pièces J-1 18h, reel 5 pièces J midi, st
 8. Pilotage Studio (artefact `XPusgp2SncMg5bLmT3wstS`) : uploader les aperçus en assets, écrire `posts/<id>` statut `programmé` + `postiz_id`.
 9. Si une étape réseau échoue (clone/push, upload) : ne rien programmer à moitié, le dire dans le topo du matin avec le kit en pièce jointe.
 
+## Jingle « Oh là live ! » sur les reels — un reel sur trois (demande de Joseph, 05/10/2026)
+Fichier : `tools/audio/jingle-court.mp3` (3,8 s, voix chuchotées, chœur final). Règle : si le jour du live (numéro du jour dans l'année) est divisible par 3, le reel R1 porte le jingle en fin de vidéo ; sinon rien ne change.
+- Après l'étape 5, sur les deux formats : `D=$(ffprobe -v error -show_entries format=duration -of csv=p=0 R.mp4)` ; `MS=$(python3 -c "print(int((max($D-3.9,0))*1000))")` ; `ffmpeg -y -i R.mp4 -i tools/audio/jingle-court.mp3 -filter_complex "[1:a]adelay=$MS|$MS,apad[a]" -map 0:v -map "[a]" -t $D -c:v copy -c:a aac -b:a 160k -movflags +faststart R_jingle.mp4` et publier R_jingle.
+- TikTok ce jour-là : pas de musique de bibliothèque, son de la vidéo à 100.
+- Voix générées par IA : cocher « contenu IA » quand l'option existe (TikTok `is_ai_generated` / Instagram dans l'app) et le signaler dans le topo.
+
 Légendes : voix Ohlalive — sobre, « Maison de sélection parisienne », « sur Whatnot » toujours écrit, départ à 1 € si c'est le format du live, jamais de superlatifs creux, 5–7 hashtags max. Jamais de visuel IA d'une pièce vendue.
