@@ -58,8 +58,11 @@ LOGO = os.path.join(HERE, "assets", "A_vertical_transparent.svg")
 LOGO_B = os.path.join(HERE, "assets", "B_horizontal_transparent.svg")
 
 # ---------- typo & logo ----------
+def OPSZ_FIX(s):
+    # 06/10/2026 : taille optique réelle sous 144 px (le « − » et les déliés disparaissaient en opsz 144)
+    return max(9, min(144, s))
 def fraunces(s, w=500):
-    f = ImageFont.truetype(FONT_F, s); f.set_variation_by_axes([144, 0, w, 1]); return f   # opsz, SOFT, wght, WONK
+    f = ImageFont.truetype(FONT_F, s); f.set_variation_by_axes([OPSZ_FIX(s), 0, w, 1]); return f   # opsz, SOFT, wght, WONK
 def archivo(s, w=500):
     f = ImageFont.truetype(FONT_A, s); f.set_variation_by_axes([w, 100]); return f          # wght, wdth
 def lockup(w):

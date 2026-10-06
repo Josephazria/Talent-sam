@@ -28,8 +28,11 @@ LOGO = os.path.join(HERE, "assets", "A_vertical_transparent.svg")
 LIVE = "En live sur Whatnot"
 SLOGANS = {"slogan": ["Le live qui vous va bien."], "signature": ["Les plus belles marques", "aux plus beaux prix."]}
 
+def OPSZ_FIX(s):
+    # 06/10/2026 : taille optique réelle sous 144 px (le « − » et les déliés disparaissaient en opsz 144)
+    return max(9, min(144, s))
 def fraunces(s, w=500):
-    f = ImageFont.truetype(FONT_F, s); f.set_variation_by_axes([144, 0, w, 1]); return f
+    f = ImageFont.truetype(FONT_F, s); f.set_variation_by_axes([OPSZ_FIX(s), 0, w, 1]); return f
 def archivo(s, w=500):
     f = ImageFont.truetype(FONT_A, s); f.set_variation_by_axes([w, 100]); return f
 def lockup(w, col=INK, dot=True):
@@ -227,7 +230,7 @@ if __name__ == "__main__":
     quand = f"{when} · {LIVE}"; mot_date = (f"{a.date}, {a.heure}." if a.heure else f"{a.date}.")
     slogans = list(SLOGANS) if a.complet else ["slogan"]
     out = a.out; seg = os.path.join(out, "_segments"); os.makedirs(seg, exist_ok=True)
-    formats = [("story", 1080, 1920), ("post", 1080, 1350)]
+    formats = [("story", 1080, 1920)] + ([("post", 1080, 1350)] if a.complet else [])
     slug = marque.lower().replace(" ", "-")
     packs = a.packs; n = len(packs)
     # montage R2 A : les pièces en boucle, un mot toutes les deux ou trois pièces ; papier aux positions paires, couleur aux impaires
