@@ -51,7 +51,12 @@
 - **Les références de format (9/10)** — ce sont exactement les contenus qu'il veut faire :
   - **@newtom_fr**, « L'histoire d'overdose la plus perturbante d'Internet » (effet nocebo). Animation vectorielle épurée sur fond rouge sombre, petits pictos simples, texte mot à mot, étiquette « ILLUSTRATION » en police machine à écrire, storytelling d'un vrai cas, sources en commentaire épinglé. 17 800 likes en 12 h.
   - **@archibald.videos**, « Cet homme tombe de 45 mètres » : l'expérience de chute libre de David Eagleman, et pourquoi le temps passe plus vite quand on vieillit. Pixel art rouge et noir, titre blanc gras et chiffre géant en police pixel rouge. 26 800 likes, 26 000 abonnés avec seulement 6 publications.
-  - **Le point commun** : une histoire vraie et surprenante + une animation rétro minimaliste et cohérente + une voix de narrateur.
+  - **@epsilon.techh**, « Un hélicoptère ne tombe jamais » (9/10, « inspire-toi de ça aussi ») : l'autorotation expliquée pas à pas. Une affirmation contre-intuitive en accroche, puis une seule analogie du quotidien (la roue libre du vélo, le moulin à vent), puis la mécanique déroulée étape par étape jusqu'à la chute (« à quelques mètres du sol, le pilote libère toute cette énergie »). Seule la légende a pu être lue, pas la vidéo.
+  - **Le point commun** : une histoire vraie ou une affirmation surprenante + une explication pas à pas avec une analogie simple + une animation rétro minimaliste et cohérente + une voix de narrateur.
+  - **Exemples transposés à Doctorgane** : « Une cellule cancéreuse ne meurt jamais toute seule », « La radiothérapie ne brûle pas », « Ton ADN casse 10 000 fois par jour, et tu ne t'en rends pas compte ». Chiffres à vérifier, et vocabulaire à surveiller (règle 2).
+- **Pour regarder une vidéo de référence en entier** : Instagram bloque la lecture sans connexion (Firecrawl, WebFetch, page d'intégration, Lovable). Deux solutions :
+  - Joseph est connecté à Instagram dans le Chrome relié à Claude ;
+  - Joseph envoie la vidéo (enregistrement d'écran). Claude en extrait alors une image toutes les 1 à 2 secondes avec ffmpeg, lit les textes à l'écran et analyse rythme, plans et structure.
 - **La musique « très quali »** (ElevenLabs Music) et des couvertures soignées.
 - **Autres comptes de référence** : @quentnsk, @doc2i.
 
