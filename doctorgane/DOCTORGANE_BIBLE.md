@@ -51,12 +51,15 @@
 - **Les références de format (9/10)** — ce sont exactement les contenus qu'il veut faire :
   - **@newtom_fr**, « L'histoire d'overdose la plus perturbante d'Internet » (effet nocebo). Animation vectorielle épurée sur fond rouge sombre, petits pictos simples, texte mot à mot, étiquette « ILLUSTRATION » en police machine à écrire, storytelling d'un vrai cas, sources en commentaire épinglé. 17 800 likes en 12 h.
   - **@archibald.videos**, « Cet homme tombe de 45 mètres » : l'expérience de chute libre de David Eagleman, et pourquoi le temps passe plus vite quand on vieillit. Pixel art rouge et noir, titre blanc gras et chiffre géant en police pixel rouge. 26 800 likes, 26 000 abonnés avec seulement 6 publications.
-  - **@epsilon.techh**, « Un hélicoptère ne tombe jamais » (9/10, « inspire-toi de ça aussi ») : l'autorotation expliquée pas à pas. Une affirmation contre-intuitive en accroche, puis une seule analogie du quotidien (la roue libre du vélo, le moulin à vent), puis la mécanique déroulée étape par étape jusqu'à la chute (« à quelques mètres du sol, le pilote libère toute cette énergie »). Seule la légende a pu être lue, pas la vidéo.
+  - **@epsilon.techh**, « Un hélicoptère ne tombe jamais » (9/10, « inspire-toi de ça aussi ») : l'autorotation expliquée pas à pas. Une affirmation contre-intuitive en accroche, puis une seule analogie du quotidien (la roue libre du vélo, le moulin à vent), puis la mécanique déroulée étape par étape jusqu'à la chute (« à quelques mètres du sol, le pilote libère toute cette énergie »).
+  - **@epsilon.techh**, deux autres reels envoyés le 9/10 :
+    - « Pourquoi un bateau en acier ne coule pas… alors qu'une bille d'acier coule ? » : 872 likes ;
+    - « Il te manipule : ce qu'on te cache au supermarché » : 4 297 likes, 155 commentaires.
+    - Mécanique : une série de questions du quotidien (« tu n'as jamais vu l'heure ? »), une révélation, puis « dis-moi en commentaire le truc que tu n'avais jamais remarqué ».
+    - Constat : plus le sujet touche la vie quotidienne de chacun et frôle la manipulation, plus il engage. Les sujets de physique purs engagent moins.
   - **Le point commun** : une histoire vraie ou une affirmation surprenante + une explication pas à pas avec une analogie simple + une animation rétro minimaliste et cohérente + une voix de narrateur.
   - **Exemples transposés à Doctorgane** : « Une cellule cancéreuse ne meurt jamais toute seule », « La radiothérapie ne brûle pas », « Ton ADN casse 10 000 fois par jour, et tu ne t'en rends pas compte ». Chiffres à vérifier, et vocabulaire à surveiller (règle 2).
-- **Pour regarder une vidéo de référence en entier** : Instagram bloque la lecture sans connexion (Firecrawl, WebFetch, page d'intégration, Lovable). Deux solutions :
-  - Joseph est connecté à Instagram dans le Chrome relié à Claude ;
-  - Joseph envoie la vidéo (enregistrement d'écran). Claude en extrait alors une image toutes les 1 à 2 secondes avec ffmpeg, lit les textes à l'écran et analyse rythme, plans et structure.
+- **Analyse image par image des 5 références (9/10)** : voir section 10.
 - **La musique « très quali »** (ElevenLabs Music) et des couvertures soignées.
 - **Autres comptes de référence** : @quentnsk, @doc2i.
 
@@ -222,3 +225,49 @@
 3. Légende prête à coller : accroche, 3 à 5 lignes, CTA, « Sources (d'après PubMed) » avec DOI, crédits photos et musique, hashtags.
 4. Réserves honnêtes.
 5. Créneau proposé, puis confirmation Postiz avec id.
+
+## 10. Grammaire des 5 références (vues en entier, image par image, le 9/10)
+
+### @newtom_fr — « L'histoire d'overdose la plus perturbante d'Internet » (77 s, 78 700 vues TikTok, 9 900 likes, 1 533 enregistrements)
+- **Histoire** : un homme arrive aux urgences, a avalé 29 cachets d'un essai clinique (antidépresseur) après une dispute. Pouls 110, tremblements, sueurs. On ne peut pas traiter sans savoir la substance, l'essai est en aveugle, on attend le labo… Twist à 54 s : « Groupe : PLACEBO ». « Il n'y avait rien dans la capsule. » → « Overdose de rien » → l'effet nocebo, « jumeau maléfique » du placebo. Fin : « des milliers de mécanismes comme ça dans ton cerveau, le seul moyen de s'en défendre c'est les connaître » → bouton « S'ABONNER » pixel cliqué par un curseur.
+- **Structure** : accroche-titre fixe 4 s (encadré blanc « L'histoire d'… la plus … d'Internet ») → enquête avec suspense (question « Qu'a-t-il avalé ? ») → obstacle (protocole verrouillé, cadenas) → attente qui monte (moniteur cardiaque) → révélation à 70 % de la durée → nom du phénomène → leçon utile → CTA intégré au dernier plan.
+- **Visuel** : pixel art 8-bit très simple (bonhomme gris, pilule, flacon, cerveau, téléphone, cœur), fond noir avec halo rouge sombre, fines lignes rouges verticales, mention « ILLUSTRATION » en bas à gauche. Une seule palette : noir, blanc, gris, rouge.
+- **Texte** : 3 couches.
+  1. sous-titre mot à mot en haut (blanc gras, mots-clés en rouge) ;
+  2. MOT-CLÉ géant en police pixel rouge qui s'écrit lettre par lettre (OVERDOSE, PROBLÈME, FLACON VIDE, EN AVEUGLE, PLACEBO, SAVOIR) ;
+  3. interface « fiche » façon terminal : compteur INGÉRÉ 0→29 CACHETS, SUBSTANCE ? INCONNUE, ÉTIQUETTE ESSAI CLINIQUE, PROTOCOLE 1/2, MONITEUR POULS 78→110, checklist de symptômes qui s'allonge, tampon « OVERDOSE » en biais, REGISTRE ligne surlignée.
+- **Rythme** : un élément nouveau toutes les 1 à 2 s ; un flash plein écran rouge sombre à chaque changement de chapitre (0, 6, 15, 21, 48, 53, 60, 72 s) ; le décor change tous les 6 à 10 s.
+
+### @archibald.videos — « Cet homme tombe de 45 mètres » (109 s)
+- **Histoire** : expérience réelle de David Eagleman (neuroscientifique) : chute libre avec un chronomètre au poignet qui affiche des chiffres trop rapides pour être lus. La peur ralentit-elle le temps ? NON : les gens surestiment la durée vécue (+36 %) parce que la peur enregistre plus de détails → donc le temps passe plus vite en vieillissant (moins de nouveauté) → semaine banale vs semaine pleine de nouveautés, l'été de vos 10 ans, « une fois adulte… métro, boulot, écran, dodo », le scroll (2 h 20/jour, + d'un mois par an) → solution : « injectez du chaos » (autre chemin, apprendre, découvrir) → « chaque première fois = un souvenir de plus » → CTA de partage : « Quelqu'un qui ne me connaît pas ? » + flèche de partage rouge.
+- **Structure en 2 actes** : 0-37 s l'expérience (spectaculaire) ; 38 s pivot « Et ce phénomène, c'est exactement ce qui explique… » ; puis application à TA vie, conseil concret, CTA. L'histoire n'est que le cheval de Troie de la leçon.
+- **Visuel** : pixel art rouge sur noir, un seul personnage qui tombe le long d'un pylône, pluie de pixels. Puis icônes pixel colorées (montre barrée, cases de calendrier, pellicule de souvenirs, sablier, téléphone qui défile). Beaucoup d'écran vide : un seul objet au centre.
+- **Texte** : peu de sous-titres ; affirmation blanche courte en haut + un mot ou chiffre géant en police pixel rouge (45 MÈTRES, PEUR, NON, +36 %, LE SCROLL, INJECTEZ DU CHAOS). Étiquette « VRAIE EXPÉRIENCE » + nom de l'expert = crédibilité en 2 s.
+- **Rythme** : plus lent que newtom (plans de 3 à 6 s), la voix porte.
+
+### @epsilon.techh — hélicoptère (94 s), bateau (98 s), supermarché (129 s)
+- **Visuel** : images IA en hologramme « wireframe » néon violet (+ touches cyan/orange) sur noir, une seule couleur dominante, logo ε en haut à droite. Mouvement lent (zoom, rotation, travelling), fondus enchaînés, parfois un flou de transition.
+- **Texte** : uniquement des sous-titres petits, centrés, phrase par phrase (pas mot à mot), en blanc (hélico) ou jaune pâle (bateau, supermarché). Aucun gros titre.
+- **Structure** :
+  - accroche = question ou affirmation contre-intuitive dès la 1re seconde (« si le moteur d'un hélicoptère s'arrête en plein vol, il ne tombe pas comme une pierre » / « pourquoi un bateau en acier ne coule pas » / « il n'y a aucune horloge dans ton supermarché ») ;
+  - contraste visuel en 2 objets (avion vs hélico, bille vs porte-conteneurs) ;
+  - « la différence tient à une seule chose » ;
+  - une analogie du quotidien (moulin à vent, balance) ;
+  - mécanique déroulée étape par étape, un plan par étape ;
+  - nom savant à la fin (« ça s'appelle l'autorotation », « poussée d'Archimède ») ;
+  - limite honnête (« mais ce n'est pas magique : trop bas et trop vite, là oui ça tombe ») ;
+  - boucle : la dernière phrase rejoint la première image (horloge, hélico) → revisionnage.
+- **Supermarché** (le plus engageant) : parle à « tu », parcours dans l'ordre réel du magasin (fruits à l'entrée, pain au fond, produits chers à hauteur des yeux, céréales à hauteur d'enfant, musique lente, odeur de poulet rôti, chariot qui a doublé), chaque révélation = une manipulation. Le spectateur se reconnaît.
+
+### Ce qui fait marcher les 5
+1. **Un seul fil** : une histoire ou une question, tenue jusqu'au bout, avec une révélation tardive (60-75 % de la durée).
+2. **Visuel 100 % cohérent** : un seul style, une palette de 2 à 3 couleurs, un objet au centre, beaucoup de vide. Aucun visage réel.
+3. **Le mot-clé géant** (newtom, archibald) ou le sous-titre seul (epsilon) : jamais plus d'une idée à l'écran.
+4. **Des « instruments »** : compteurs, jauges, moniteurs, fiches, checklists qui se remplissent → on suit des chiffres qui bougent.
+5. **Durée longue (77 à 129 s)** assumée, parce que chaque seconde apporte un élément nouveau.
+6. **Fin = leçon pour TOI + CTA intégré à l'image** (bouton s'abonner pixel, flèche de partage) ou boucle.
+
+### Transposition Doctorgane — 2 styles maison
+- **Style « Dossier » (newtom + archibald)** : pixel art codé en Python (aucune image IA, donc aucun côté IA), dans la palette Doctorgane (fond NAVY/DARK, pixel CREAM, accent CORAL au lieu du rouge sang). Fiches patient façon terminal, compteurs, mot-clé géant en police pixel corail, étiquette « ILLUSTRATION ». Pour la série « Les histoires les plus folles de la cancérologie ».
+- **Style « Hologramme » (epsilon)** : images IA seedream en wireframe néon (cyan + corail sur noir), Ken Burns lent, sous-titres seuls. Pour les explications de mécanismes (radiothérapie, immunothérapie, cellule qui se divise).
+- **Vocabulaire** : la révélation doit rassurer ou émerveiller, jamais effrayer. Pas de mort à l'écran (dans newtom, le patient va bien à la fin : l'histoire rassure).
