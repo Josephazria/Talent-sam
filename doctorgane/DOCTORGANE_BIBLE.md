@@ -276,4 +276,5 @@
 - https://www.instagram.com/reel/DeKU1YYANYT/ — « inspire-toi de ces comptes pour les visuels » des vidéos (9/10).
 - https://www.instagram.com/p/DeQrnKmDH1e/ — « pour les posts statiques on peut se baser sur lui » (9/10) : en tirer un gabarit de post statique / carrousel Doctorgane.
 - https://www.instagram.com/reel/DeWTKleMk-S/ — « s'inspirer de ça aussi » (11/10).
+- https://www.instagram.com/p/DdqmFNjgrhy/ — « s'inspirer pour les sujets » (11/10) : en tirer des idées de sujets Doctorgane.
 - Méthode : section 8, « Lire un reel Instagram ». Pour un post /p/, ouvrir /p/ID/embed/captioned/ et récupérer chaque image du carrousel.
