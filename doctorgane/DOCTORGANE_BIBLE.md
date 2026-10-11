@@ -271,3 +271,9 @@
 - **Style « Dossier » (newtom + archibald)** : pixel art codé en Python (aucune image IA, donc aucun côté IA), dans la palette Doctorgane (fond NAVY/DARK, pixel CREAM, accent CORAL au lieu du rouge sang). Fiches patient façon terminal, compteurs, mot-clé géant en police pixel corail, étiquette « ILLUSTRATION ». Pour la série « Les histoires les plus folles de la cancérologie ».
 - **Style « Hologramme » (epsilon)** : images IA seedream en wireframe néon (cyan + corail sur noir), Ken Burns lent, sous-titres seuls. Pour les explications de mécanismes (radiothérapie, immunothérapie, cellule qui se divise).
 - **Vocabulaire** : la révélation doit rassurer ou émerveiller, jamais effrayer. Pas de mort à l'écran (dans newtom, le patient va bien à la fin : l'histoire rassure).
+
+### Références envoyées, pas encore analysées (Chrome injoignable, à faire dès que possible)
+- https://www.instagram.com/reel/DeKU1YYANYT/ — « inspire-toi de ces comptes pour les visuels » des vidéos (9/10).
+- https://www.instagram.com/p/DeQrnKmDH1e/ — « pour les posts statiques on peut se baser sur lui » (9/10) : en tirer un gabarit de post statique / carrousel Doctorgane.
+- https://www.instagram.com/reel/DeWTKleMk-S/ — « s'inspirer de ça aussi » (11/10).
+- Méthode : section 8, « Lire un reel Instagram ». Pour un post /p/, ouvrir /p/ID/embed/captioned/ et récupérer chaque image du carrousel.
