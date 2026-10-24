@@ -116,7 +116,9 @@ def final_card_frames(W, H, seconds, quand, slogan, marque):
     y = top + lk0.height + int(70 * s)
     L_vp = text_layer(W, H, [("a6", "VENTE EXCLUSIVE", int(26 * s), INK, cx, None, y, 7 * s)])
     y += int(150 * s)
-    L_name = text_layer(W, H, [("f", marque, int(190 * s), INK, cx, None, y, 0)])
+    nsize = int(190 * s)
+    while nsize > int(70 * s) and text_width(marque, nsize) > W * 0.9: nsize -= 4   # noms longs (ex. Compañía Fantástica)
+    L_name = text_layer(W, H, [("f", marque, nsize, INK, cx, None, y, 0)])
     y += int(40 * s); y2 = y + int(24 * s)
     wsize = int(40 * s)
     while wsize > int(26 * s) and text_width(quand, wsize, "a") > W * 0.88: wsize -= 2
