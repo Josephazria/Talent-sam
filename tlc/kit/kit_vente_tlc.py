@@ -210,7 +210,8 @@ class Kit:
         if studio_clair or (zone.mean() > 150 and np.percentile(zone, 15) > 110):
             out = out.convert("RGB"); col = INK
             mkz = np.array(mk.crop((160, block_top, W - 160, int(H * 0.86)))).astype(float) / 255
-            if mkz.mean() > 0.06: out = veil_bottom(out, from_y=block_top - 60)
+            # 31/10/2026 : si le sujet passe sous le bloc texte, voile plus franc (lisible sur vêtement sombre ou imprimé)
+            if mkz.mean() > 0.06: out = veil_bottom(out, from_y=block_top - 180, ramp=220)
         else:
             g0 = int(H * 0.46)
             out = Image.composite(Image.new("RGBA", (W, H), (14, 12, 10, 255)), out, vgrad_img(W, H, lambda y: (y - g0) / (H - g0) * 215)).convert("RGB"); col = PAPER
@@ -438,9 +439,10 @@ def extend_top(im, mask, frac=0.16):
     mout = Image.new("L", (w, h + n), 0); mout.paste(mask, (0, n))
     return out, mout
 
-def veil_bottom(im, from_y, strength=0.86):
+def veil_bottom(im, from_y, strength=0.86, ramp=None):
+    """Voile papier qui monte du bas. ramp = hauteur (px) de la transition ; défaut 55 % de la hauteur restante."""
     W, H = im.size; y = np.arange(H)
-    t = np.clip((y - from_y) / max(1, (H - from_y) * 0.55), 0, 1); g = (t ** 1.4) * strength * 255
+    t = np.clip((y - from_y) / max(1, ramp if ramp else (H - from_y) * 0.55), 0, 1); g = (t ** 1.4) * strength * 255
     mask = Image.fromarray(g.astype(np.uint8)).resize((1, H)).resize((W, H))
     return Image.composite(Image.new("RGB", (W, H), PAPER), im.convert("RGB"), mask)
 
